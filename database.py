@@ -376,6 +376,41 @@ def search_candidates(skills=None, education=None, min_rating=None, experience=N
             candidates.append(candidate)
         return candidates
 
+def get_pending_companies():
+    """Get all companies waiting for approval"""
+    with get_db() as conn:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute("""
+            SELECT id, email, full_name, phone, linkedin, github, created_at
+            FROM users 
+            WHERE role = 'company' AND is_approved = false
+            ORDER BY created_at DESC
+        """)
+        companies = []
+        for row in cur.fetchall():
+            company = {
+                'id': row['id'],
+                'email': row['email'],
+                'full_name': row['full_name'],
+                'phone': row['phone'],
+                'linkedin': row['linkedin'],
+                'github': row['github'],
+                'created_at': row['created_at']
+            }
+            companies.append(company)
+        return companies
+
+def approve_company(company_id):
+    """Approve a company account"""
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE users SET is_approved = true 
+            WHERE id = %s AND role = 'company'
+        """, (company_id,))
+        conn.commit()
+        return cur.rowcount > 0
+
 def delete_job(job_id):
     """Delete a job"""
     with get_db() as conn:
