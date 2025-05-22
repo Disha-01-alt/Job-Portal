@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-user me-2"></i>My Profile
+            </h1>
+        </div>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <!-- Personal Information -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-circle me-2"></i>Personal Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" value="{{ current_user.full_name or '' }}" readonly>
+                                <small class="text-muted">Contact admin to change your name</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" class="form-control" value="{{ current_user.phone or '' }}" readonly>
+                                <small class="text-muted">Contact admin to change your phone</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">LinkedIn</label>
+                                <input type="url" class="form-control" value="{{ current_user.linkedin or '' }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">GitHub</label>
+                            <input type="url" class="form-control" value="{{ current_user.github or '' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Professional Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>Professional Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="summary" class="form-label">Professional Summary</label>
+                            <textarea class="form-control" id="summary" name="summary" rows="4" 
+                                placeholder="Write a brief summary about yourself, your career goals, and what makes you unique...">{{ profile.summary if profile and profile.summary else '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="education" class="form-label">Education</label>
+                            <textarea class="form-control" id="education" name="education" rows="3"
+                                placeholder="Your educational background, degrees, institutions, and relevant coursework...">{{ profile.education if profile and profile.education else '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="experience" class="form-label">Experience</label>
+                            <textarea class="form-control" id="experience" name="experience" rows="3"
+                                placeholder="Your work experience, internships, projects, and achievements...">{{ profile.experience if profile and profile.experience else '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="skills" class="form-label">Skills</label>
+                            <textarea class="form-control" id="skills" name="skills" rows="3"
+                                placeholder="List your technical skills, programming languages, tools, and soft skills...">{{ profile.skills if profile and profile.skills else '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documents Section -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-alt me-2"></i>Documents
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- CV Upload -->
+                        <div class="mb-4">
+                            <label for="cv" class="form-label">CV/Resume</label>
+                            {% if profile and profile.cv_filename %}
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        <span class="small">{{ profile.cv_filename }}</span>
+                                    </div>
+                                    <a href="{{ url_for('candidate_routes.download_file', file_type='cv') }}" 
+                                       class="btn btn-sm btn-outline-primary mt-1">
+                                        <i class="fas fa-download me-1"></i>Download
+                                    </a>
+                                </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="cv" name="cv" 
+                                   accept=".pdf,.doc,.docx">
+                            <small class="text-muted">PDF, DOC, or DOCX files only</small>
+                        </div>
+                        
+                        <!-- ID Card Upload -->
+                        <div class="mb-4">
+                            <label for="id_card" class="form-label">ID Card</label>
+                            {% if profile and profile.id_card_filename %}
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-id-card text-info me-2"></i>
+                                        <span class="small">{{ profile.id_card_filename }}</span>
+                                    </div>
+                                    <a href="{{ url_for('candidate_routes.download_file', file_type='id_card') }}" 
+                                       class="btn btn-sm btn-outline-primary mt-1">
+                                        <i class="fas fa-download me-1"></i>Download
+                                    </a>
+                                </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="id_card" name="id_card" 
+                                   accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="text-muted">PDF, JPG, JPEG, or PNG files only</small>
+                        </div>
+                        
+                        <!-- Marksheet Upload -->
+                        <div class="mb-4">
+                            <label for="marksheet" class="form-label">12th Marksheet</label>
+                            {% if profile and profile.marksheet_filename %}
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-certificate text-success me-2"></i>
+                                        <span class="small">{{ profile.marksheet_filename }}</span>
+                                    </div>
+                                    <a href="{{ url_for('candidate_routes.download_file', file_type='marksheet') }}" 
+                                       class="btn btn-sm btn-outline-primary mt-1">
+                                        <i class="fas fa-download me-1"></i>Download
+                                    </a>
+                                </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="marksheet" name="marksheet" 
+                                   accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="text-muted">PDF, JPG, JPEG, or PNG files only</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rating and Feedback -->
+                {% if profile and (profile.rating or profile.admin_feedback) %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star me-2"></i>Admin Review
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if profile.rating %}
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <div>
+                                    {% for i in range(1, 6) %}
+                                        <i class="fas fa-star {{ 'text-warning' if i <= profile.rating else 'text-muted' }}"></i>
+                                    {% endfor %}
+                                    <span class="ms-2">{{ profile.rating }}/5</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if profile.admin_feedback %}
+                            <div>
+                                <label class="form-label">Feedback</label>
+                                <p class="text-muted">{{ profile.admin_feedback }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Update Profile
+                </button>
+                <a href="{{ url_for('candidate_routes.dashboard') }}" class="btn btn-secondary ms-2">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

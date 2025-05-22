@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Company Dashboard - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-building me-2"></i>Company Dashboard
+            </h1>
+            <p class="lead text-muted">Welcome, {{ current_user.full_name or current_user.email }}!</p>
+        </div>
+    </div>
+    
+    {% if pending_approval %}
+        <!-- Pending Approval State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-clock" style="font-size: 2rem;"></i>
+                        </div>
+                        <div>
+                            <h5 class="alert-heading mb-2">Account Pending Approval</h5>
+                            <p class="mb-0">
+                                Your company account is currently under review by our administrators. 
+                                You will receive an email notification once your account has been approved 
+                                and you can start accessing candidate profiles.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-user-clock text-muted" style="font-size: 5rem;"></i>
+                <h3 class="mt-4 mb-3">Access Restricted</h3>
+                <p class="text-muted mb-4">
+                    While your account is under review, you won't be able to access candidate information. 
+                    This helps us maintain the security and quality of our platform.
+                </p>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">What happens next?</h6>
+                                <ul class="list-unstyled text-start small">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Administrator reviews your account</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Verification of company credentials</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Email notification upon approval</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Full access to candidate database</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Approved Account State -->
+        <div class="row g-4 mb-5">
+            <!-- Welcome Card -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="card-title mb-3">Find Your Next Great Hire</h4>
+                                <p class="card-text mb-4">
+                                    Search through our database of qualified candidates, filter by skills and experience, 
+                                    and find the perfect match for your team.
+                                </p>
+                                <a href="{{ url_for('company_routes.search_candidates_route') }}" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>Search Candidates
+                                </a>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <i class="fas fa-users text-primary" style="font-size: 4rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar text-info mb-3" style="font-size: 2.5rem;"></i>
+                        <h5 class="card-title">Platform Statistics</h5>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <div class="h4 text-primary">{{ recent_candidates|length }}+</div>
+                                <small class="text-muted">Active Candidates</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h4 text-success">{{ recent_candidates|selectattr('rating')|list|length }}</div>
+                                <small class="text-muted">Verified Profiles</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Candidates Preview -->
+        {% if recent_candidates %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3>Recent Candidates</h3>
+                        <a href="{{ url_for('company_routes.search_candidates_route') }}" class="btn btn-outline-primary">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                {% for candidate in recent_candidates[:6] %}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h6 class="card-title mb-0">
+                                        {{ candidate.full_name or candidate.email }}
+                                    </h6>
+                                    {% if candidate.rating %}
+                                        <div class="text-end">
+                                            {% for i in range(1, 6) %}
+                                                <i class="fas fa-star {{ 'text-warning' if i <= candidate.rating else 'text-muted' }}" 
+                                                   style="font-size: 0.8rem;"></i>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Skills Preview -->
+                                {% if candidate.skills %}
+                                    <div class="mb-3">
+                                        {% set skills_list = candidate.skills.split(',')[:2] %}
+                                        {% for skill in skills_list %}
+                                            <span class="badge bg-secondary me-1 mb-1">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                        {% if candidate.skills.split(',')|length > 2 %}
+                                            <span class="text-muted small">+{{ candidate.skills.split(',')|length - 2 }} more</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Contact Info -->
+                                <div class="mb-3 small text-muted">
+                                    {% if candidate.linkedin %}
+                                        <div class="mb-1">
+                                            <i class="fab fa-linkedin me-1"></i>LinkedIn Available
+                                        </div>
+                                    {% endif %}
+                                    {% if candidate.cv_filename %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-file-pdf me-1"></i>CV Available
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <a href="{{ url_for('company_routes.candidate_detail', candidate_id=candidate.id) }}" 
+                                   class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- No Candidates Available -->
+            <div class="row">
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-search text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 mb-3">Start Your Search</h3>
+                    <p class="text-muted mb-4">
+                        Begin searching for candidates using our advanced filtering system.
+                        Find candidates by skills, experience, education, and rating.
+                    </p>
+                    <a href="{{ url_for('company_routes.search_candidates_route') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Search Candidates Now
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Features Overview -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="mb-4">How to Use the Platform</h3>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-search text-primary mb-3" style="font-size: 2rem;"></i>
+                        <h6 class="card-title">Search & Filter</h6>
+                        <p class="card-text small">
+                            Use our advanced search to find candidates by skills, education, 
+                            experience level, and admin ratings.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-check text-success mb-3" style="font-size: 2rem;"></i>
+                        <h6 class="card-title">Review Profiles</h6>
+                        <p class="card-text small">
+                            View detailed candidate profiles including education, experience, 
+                            skills, and admin feedback.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-download text-info mb-3" style="font-size: 2rem;"></i>
+                        <h6 class="card-title">Download CVs</h6>
+                        <p class="card-text small">
+                            Download candidate CVs and documents to review offline 
+                            and share with your hiring team.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

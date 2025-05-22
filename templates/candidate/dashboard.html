@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Dashboard - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tachometer-alt me-2"></i>Candidate Dashboard
+            </h1>
+            <p class="lead text-muted">Welcome back, {{ current_user.full_name or current_user.email }}!</p>
+        </div>
+    </div>
+    
+    <!-- Profile Status Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="card-title">Profile Status</h5>
+                    {% if profile and profile.summary and profile.education and profile.skills %}
+                        <span class="badge bg-success">Complete</span>
+                        <p class="card-text mt-2">Your profile is complete and visible to employers.</p>
+                    {% else %}
+                        <span class="badge bg-warning">Incomplete</span>
+                        <p class="card-text mt-2">Complete your profile to increase visibility.</p>
+                    {% endif %}
+                    <a href="{{ url_for('candidate_routes.profile') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-alt text-info mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="card-title">Documents</h5>
+                    {% set doc_count = 0 %}
+                    {% if profile and profile.cv_filename %}{% set doc_count = doc_count + 1 %}{% endif %}
+                    {% if profile and profile.id_card_filename %}{% set doc_count = doc_count + 1 %}{% endif %}
+                    {% if profile and profile.marksheet_filename %}{% set doc_count = doc_count + 1 %}{% endif %}
+                    
+                    <span class="badge bg-{{ 'success' if doc_count == 3 else 'warning' if doc_count > 0 else 'danger' }}">
+                        {{ doc_count }}/3 Uploaded
+                    </span>
+                    <p class="card-text mt-2">
+                        {% if doc_count == 3 %}
+                            All required documents uploaded.
+                        {% else %}
+                            Upload CV, ID card, and marksheet.
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('candidate_routes.profile') }}" class="btn btn-info btn-sm">
+                        <i class="fas fa-upload me-1"></i>Manage Documents
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-star text-warning mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="card-title">Admin Rating</h5>
+                    {% if profile and profile.rating %}
+                        <div class="mb-2">
+                            {% for i in range(1, 6) %}
+                                <i class="fas fa-star {{ 'text-warning' if i <= profile.rating else 'text-muted' }}"></i>
+                            {% endfor %}
+                        </div>
+                        <span class="badge bg-success">{{ profile.rating }}/5</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Rated</span>
+                        <p class="card-text mt-2">Your profile hasn't been reviewed yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Feedback -->
+    {% if profile and profile.admin_feedback %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Admin Feedback
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ profile.admin_feedback }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">Quick Actions</h3>
+        </div>
+    </div>
+    
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-user me-2"></i>Update Profile
+                    </h6>
+                    <p class="card-text">Add or update your personal information, education, and skills.</p>
+                    <a href="{{ url_for('candidate_routes.profile') }}" class="btn btn-outline-primary btn-sm">
+                        Go to Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-search me-2"></i>Browse Jobs
+                    </h6>
+                    <p class="card-text">Explore available job opportunities that match your profile.</p>
+                    <a href="{{ url_for('candidate_routes.jobs') }}" class="btn btn-outline-primary btn-sm">
+                        View Jobs
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-download me-2"></i>Download Documents
+                    </h6>
+                    <p class="card-text">Download your uploaded CV, ID card, and marksheet.</p>
+                    {% if profile and (profile.cv_filename or profile.id_card_filename or profile.marksheet_filename) %}
+                        <a href="{{ url_for('candidate_routes.profile') }}" class="btn btn-outline-primary btn-sm">
+                            View Documents
+                        </a>
+                    {% else %}
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            No Documents
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

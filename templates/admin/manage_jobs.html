@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Jobs - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Manage Jobs
+                    </h1>
+                    <p class="text-muted mb-0">Edit, delete, and organize job postings</p>
+                </div>
+                <a href="{{ url_for('admin_routes.add_job') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Job
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if jobs %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>All Job Postings ({{ jobs|length }})
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Job Title</th>
+                                        <th>Company</th>
+                                        <th>Location</th>
+                                        <th>Type</th>
+                                        <th>Posted Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for job in jobs %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ job.title }}</div>
+                                                {% if job.salary_range %}
+                                                    <small class="text-success">{{ job.salary_range }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ job.company }}</td>
+                                            <td>
+                                                <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                                                {{ job.location }}
+                                            </td>
+                                            <td>
+                                                {% if job.job_type %}
+                                                    <span class="badge bg-secondary">{{ job.job_type }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small>{{ job.created_at.strftime('%m/%d/%Y') }}</small>
+                                                {% if job.posted_by_name %}
+                                                    <br><small class="text-muted">by {{ job.posted_by_name }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <!-- View Details -->
+                                                    <button type="button" class="btn btn-outline-info btn-sm" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#jobModal{{ job.id }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    
+                                                    <!-- Edit Job -->
+                                                    <a href="{{ url_for('admin_routes.edit_job', job_id=job.id) }}" 
+                                                       class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    
+                                                    {% if job.linkedin_url %}
+                                                        <!-- LinkedIn Link -->
+                                                        <a href="{{ job.linkedin_url }}" target="_blank" 
+                                                           class="btn btn-outline-secondary btn-sm">
+                                                            <i class="fab fa-linkedin"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    <!-- Delete Job -->
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                            onclick="confirmDelete('{{ job.id }}', '{{ job.title }}')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Job Detail Modals -->
+        {% for job in jobs %}
+            <div class="modal fade" id="jobModal{{ job.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ job.title }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong>Company:</strong> {{ job.company }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Location:</strong> {{ job.location }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                {% if job.job_type %}
+                                    <div class="col-md-6">
+                                        <strong>Type:</strong> {{ job.job_type }}
+                                    </div>
+                                {% endif %}
+                                {% if job.salary_range %}
+                                    <div class="col-md-6">
+                                        <strong>Salary:</strong> {{ job.salary_range }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Description:</strong>
+                                <div class="mt-2 p-3 bg-secondary rounded">
+                                    {{ job.description|replace('\n', '<br>')|safe }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Requirements:</strong>
+                                <div class="mt-2 p-3 bg-secondary rounded">
+                                    {{ job.requirements|replace('\n', '<br>')|safe }}
+                                </div>
+                            </div>
+                            
+                            <div class="text-muted small">
+                                Posted on {{ job.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                {% if job.posted_by_name %}
+                                    by {{ job.posted_by_name }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            {% if job.linkedin_url %}
+                                <a href="{{ job.linkedin_url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fab fa-linkedin me-1"></i>View on LinkedIn
+                                </a>
+                            {% endif %}
+                            <a href="{{ url_for('admin_routes.edit_job', job_id=job.id) }}" class="btn btn-primary">
+                                <i class="fas fa-edit me-1"></i>Edit Job
+                            </a>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        
+    {% else %}
+        <!-- No Jobs State -->
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-briefcase text-muted" style="font-size: 5rem;"></i>
+                <h3 class="mt-4 mb-3">No Jobs Posted Yet</h3>
+                <p class="text-muted mb-4">
+                    Start by adding your first job posting using LinkedIn URL extraction.
+                </p>
+                <a href="{{ url_for('admin_routes.add_job') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Add First Job
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the job posting "<span id="jobTitle"></span>"?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="deleteLink" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete Job
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(jobId, jobTitle) {
+    document.getElementById('jobTitle').textContent = jobTitle;
+    document.getElementById('deleteLink').href = "{{ url_for('admin_routes.delete_job_route', job_id='') }}" + jobId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.full_name or candidate.email }} - Review Candidate{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-0">{{ candidate.full_name or candidate.email }}</h1>
+                    <p class="text-muted mb-0">Candidate Review</p>
+                </div>
+                <a href="{{ url_for('admin_routes.review_candidates') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Candidate Information -->
+        <div class="col-lg-8">
+            <!-- Personal Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Full Name</label>
+                            <div>{{ candidate.full_name or 'Not provided' }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Email</label>
+                            <div>{{ candidate.email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Phone</label>
+                            <div>
+                                {% if candidate.phone %}
+                                    <i class="fas fa-phone me-2"></i>{{ candidate.phone }}
+                                {% else %}
+                                    <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Registration Date</label>
+                            <div>
+                                <i class="fas fa-calendar me-2"></i>
+                                {{ candidate.created_at.strftime('%B %d, %Y') }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        {% if candidate.linkedin %}
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">LinkedIn</label>
+                                <div>
+                                    <a href="{{ candidate.linkedin }}" target="_blank" class="text-decoration-none">
+                                        <i class="fab fa-linkedin me-2"></i>View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if candidate.github %}
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">GitHub</label>
+                                <div>
+                                    <a href="{{ candidate.github }}" target="_blank" class="text-decoration-none">
+                                        <i class="fab fa-github me-2"></i>View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Professional Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-briefcase me-2"></i>Professional Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Professional Summary</label>
+                        <div class="p-3 bg-secondary rounded">
+                            {% if candidate.summary %}
+                                {{ candidate.summary|replace('\n', '<br>')|safe }}
+                            {% else %}
+                                <span class="text-muted">No summary provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Education</label>
+                        <div class="p-3 bg-secondary rounded">
+                            {% if candidate.education %}
+                                {{ candidate.education|replace('\n', '<br>')|safe }}
+                            {% else %}
+                                <span class="text-muted">No education information provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Experience</label>
+                        <div class="p-3 bg-secondary rounded">
+                            {% if candidate.experience %}
+                                {{ candidate.experience|replace('\n', '<br>')|safe }}
+                            {% else %}
+                                <span class="text-muted">No experience information provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Skills</label>
+                        <div class="p-3 bg-secondary rounded">
+                            {% if candidate.skills %}
+                                {% set skills_list = candidate.skills.split(',') %}
+                                {% for skill in skills_list %}
+                                    <span class="badge bg-primary me-2 mb-2">{{ skill.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">No skills listed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rating and Feedback Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Rate Candidate
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_routes.rate_candidate', candidate_id=candidate.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label">Rating *</label>
+                            <div class="rating-input">
+                                {% for i in range(1, 6) %}
+                                    <input type="radio" id="rating{{ i }}" name="rating" value="{{ i }}" 
+                                           {{ 'checked' if candidate.rating == i else '' }} required>
+                                    <label for="rating{{ i }}" class="rating-star">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">Click on a star to rate the candidate (1-5)</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="feedback" class="form-label">Feedback</label>
+                            <textarea class="form-control" id="feedback" name="feedback" rows="4" 
+                                      placeholder="Provide detailed feedback about the candidate's profile, strengths, areas for improvement, etc.">{{ candidate.admin_feedback or '' }}</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {{ 'Update Rating & Feedback' if candidate.rating or candidate.admin_feedback else 'Submit Rating & Feedback' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Current Rating -->
+            {% if candidate.rating or candidate.admin_feedback %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-clipboard-check me-2"></i>Current Review
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if candidate.rating %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Rating</label>
+                                <div>
+                                    {% for i in range(1, 6) %}
+                                        <i class="fas fa-star {{ 'text-warning' if i <= candidate.rating else 'text-muted' }}"></i>
+                                    {% endfor %}
+                                    <span class="ms-2 fw-bold">{{ candidate.rating }}/5</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if candidate.admin_feedback %}
+                            <div>
+                                <label class="form-label text-muted small">Feedback</label>
+                                <div class="small">{{ candidate.admin_feedback }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Documents -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Documents
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- CV -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <i class="fas fa-file-pdf {{ 'text-danger' if candidate.cv_filename else 'text-muted' }} me-2"></i>
+                            <span class="fw-bold">CV/Resume</span>
+                        </div>
+                        {% if candidate.cv_filename %}
+                            <a href="{{ url_for('admin_routes.download_cv', candidate_id=candidate.id) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        {% else %}
+                            <span class="badge bg-secondary">Not uploaded</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- ID Card -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <i class="fas fa-id-card {{ 'text-info' if candidate.id_card_filename else 'text-muted' }} me-2"></i>
+                            <span class="fw-bold">ID Card</span>
+                        </div>
+                        {% if candidate.id_card_filename %}
+                            <span class="badge bg-success">Uploaded</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not uploaded</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Marksheet -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-certificate {{ 'text-success' if candidate.marksheet_filename else 'text-muted' }} me-2"></i>
+                            <span class="fw-bold">12th Marksheet</span>
+                        </div>
+                        {% if candidate.marksheet_filename %}
+                            <span class="badge bg-success">Uploaded</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Completeness -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Profile Completeness
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% set completeness_score = 0 %}
+                    {% if candidate.full_name %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.phone %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.linkedin %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.summary %}{% set completeness_score = completeness_score + 15 %}{% endif %}
+                    {% if candidate.education %}{% set completeness_score = completeness_score + 15 %}{% endif %}
+                    {% if candidate.experience %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.skills %}{% set completeness_score = completeness_score + 15 %}{% endif %}
+                    {% if candidate.cv_filename %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.id_card_filename %}{% set completeness_score = completeness_score + 2.5 %}{% endif %}
+                    {% if candidate.marksheet_filename %}{% set completeness_score = completeness_score + 2.5 %}{% endif %}
+                    
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: {{ completeness_score }}%">
+                            {{ completeness_score|int }}%
+                        </div>
+                    </div>
+                    
+                    <div class="small text-muted">
+                        {% if completeness_score >= 80 %}
+                            <i class="fas fa-check-circle text-success me-1"></i>Excellent profile
+                        {% elif completeness_score >= 60 %}
+                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>Good profile, could be improved
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger me-1"></i>Incomplete profile
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.rating-input input[type="radio"] {
+    display: none;
+}
+
+.rating-star {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #6c757d;
+    transition: color 0.2s;
+}
+
+.rating-input input[type="radio"]:checked ~ .rating-star,
+.rating-input input[type="radio"]:checked + .rating-star {
+    color: #ffc107;
+}
+
+.rating-star:hover {
+    color: #ffc107;
+}
+</style>
+
+<script>
+// Rating star interaction
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    const ratingStars = document.querySelectorAll('.rating-star');
+    
+    ratingStars.forEach((star, index) => {
+        star.addEventListener('mouseenter', function() {
+            // Highlight stars up to hovered one
+            ratingStars.forEach((s, i) => {
+                if (i <= index) {
+                    s.style.color = '#ffc107';
+                } else {
+                    s.style.color = '#6c757d';
+                }
+            });
+        });
+        
+        star.addEventListener('click', function() {
+            ratingInputs[index].checked = true;
+        });
+    });
+    
+    // Reset on mouse leave
+    document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+        const checkedInput = document.querySelector('input[name="rating"]:checked');
+        if (checkedInput) {
+            const checkedIndex = Array.from(ratingInputs).indexOf(checkedInput);
+            ratingStars.forEach((s, i) => {
+                if (i <= checkedIndex) {
+                    s.style.color = '#ffc107';
+                } else {
+                    s.style.color = '#6c757d';
+                }
+            });
+        } else {
+            ratingStars.forEach(s => s.style.color = '#6c757d');
+        }
+    });
+});
+</script>
+{% endblock %}
