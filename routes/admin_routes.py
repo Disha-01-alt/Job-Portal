@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from database import (get_all_jobs, create_job, get_all_candidates, 
                      update_candidate_rating_feedback, delete_job, 
-                     get_job_by_id, update_job, get_candidate_profile)
+                     get_job_by_id, update_job, get_candidate_profile,
+                     get_pending_companies, approve_company)
 from job_extractor import extract_job_from_linkedin
 import os
 import logging
@@ -21,6 +22,7 @@ def dashboard():
     try:
         jobs = get_all_jobs()
         candidates = get_all_candidates()
+        pending_companies = get_pending_companies()
         
         # Calculate statistics
         total_jobs = len(jobs)
@@ -31,11 +33,13 @@ def dashboard():
             'total_jobs': total_jobs,
             'total_candidates': total_candidates,
             'rated_candidates': rated_candidates,
-            'pending_reviews': total_candidates - rated_candidates
+            'pending_reviews': total_candidates - rated_candidates,
+            'pending_companies': len(pending_companies)
         }
         
         return render_template('admin/dashboard.html', stats=stats, 
-                             recent_jobs=jobs[:5], recent_candidates=candidates[:5])
+                             recent_jobs=jobs[:5], recent_candidates=candidates[:5],
+                             pending_companies=pending_companies)
     except Exception as e:
         logging.error(f"Error loading admin dashboard: {e}")
         flash('Error loading dashboard. Please try again.', 'error')
@@ -227,3 +231,18 @@ def download_cv(candidate_id):
         logging.error(f"Error downloading CV: {e}")
         flash('Error downloading CV. Please try again.', 'error')
         return redirect(url_for('admin_routes.candidate_detail', candidate_id=candidate_id))
+
+@admin_bp.route('/approve_company/<int:company_id>')
+@login_required
+def approve_company_route(company_id):
+    check_admin_role()
+    try:
+        if approve_company(company_id):
+            flash('Company has been approved successfully!', 'success')
+        else:
+            flash('Error approving company. Please try again.', 'error')
+    except Exception as e:
+        logging.error(f"Error approving company: {e}")
+        flash('Error approving company. Please try again.', 'error')
+    
+    return redirect(url_for('admin_routes.dashboard'))
