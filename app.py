@@ -32,11 +32,13 @@ from routes.auth_routes import auth_bp
 from routes.candidate_routes import candidate_bp
 from routes.admin_routes import admin_bp
 from routes.company_routes import company_bp
+from google_auth import google_auth
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(candidate_bp, url_prefix='/candidate')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(company_bp, url_prefix='/company')
+app.register_blueprint(google_auth)
 
 # Import database initialization
 from database import init_db
