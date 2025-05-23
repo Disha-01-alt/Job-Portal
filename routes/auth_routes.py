@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user
 from database import get_user_by_email, create_user
+from models import User
 import logging
 
 auth_bp = Blueprint('auth_routes', __name__)
@@ -110,8 +111,77 @@ def register():
     
     return render_template('auth/register.html')
 
+@auth_bp.route('/complete_registration', methods=['GET', 'POST'])
+def complete_registration():
+    # Check if user has Google info in session
+    if not session.get('pending_registration') or not session.get('google_email'):
+        flash('Registration session expired. Please sign in with Google again.', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        role = request.form.get('role')
+        full_name = request.form.get('full_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        linkedin = request.form.get('linkedin', '').strip()
+        github = request.form.get('github', '').strip()
+        
+        if not role or role not in ['candidate', 'company']:
+            flash('Please select a valid role.', 'error')
+            return render_template('auth/complete_registration.html')
+        
+        try:
+            # Create user account
+            user_id = create_user(
+                email=session['google_email'],
+                password='',  # No password needed for Google auth
+                role=role,
+                full_name=full_name,
+                phone=phone,
+                linkedin=linkedin,
+                github=github
+            )
+            
+            # Clear registration session
+            session.pop('pending_registration', None)
+            
+            # Create user object and log them in
+            user = User(
+                user_id=user_id,
+                email=session['google_email'],
+                password_hash='',
+                role=role,
+                full_name=full_name,
+                phone=phone,
+                linkedin=linkedin,
+                github=github,
+                is_approved=(role != 'company')  # Companies need approval
+            )
+            login_user(user)
+            
+            if role == 'company':
+                flash('Your company account has been created and is pending admin approval. You will be notified once approved.', 'info')
+                return redirect(url_for('index'))
+            else:
+                flash('Welcome! Your account has been created successfully.', 'success')
+                return redirect(url_for('candidate_routes.dashboard'))
+                
+        except Exception as e:
+            logging.error(f"Error creating user: {e}")
+            flash('Error creating account. Please try again.', 'error')
+    
+    return render_template('auth/complete_registration.html', 
+                         google_name=session.get('google_name'),
+                         google_email=session.get('google_email'))
+
 @auth_bp.route('/logout')
 def logout():
     logout_user()
+    # Clear all Google-related session data
+    session.pop('google_id', None)
+    session.pop('google_email', None)
+    session.pop('google_name', None)
+    session.pop('google_picture', None)
+    session.pop('pending_registration', None)
+    
     flash('You have been logged out successfully.', 'info')
     return redirect(url_for('index'))
