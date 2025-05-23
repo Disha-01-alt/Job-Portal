@@ -24,7 +24,7 @@ for directory in upload_dirs:
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'auth_routes.login'
+login_manager.login_view = 'google_auth.login'
 login_manager.login_message = 'Please log in to access this page.'
 
 # Import and register blueprints
