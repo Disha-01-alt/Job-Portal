@@ -108,7 +108,6 @@ def profile():
         return redirect(url_for('candidate_routes.dashboard'))
 
 @candidate_bp.route('/jobs')
-@login_required
 def jobs():
     try:
         jobs = get_all_jobs()
@@ -116,7 +115,7 @@ def jobs():
     except Exception as e:
         logging.error(f"Error loading jobs: {e}")
         flash('Error loading jobs. Please try again.', 'error')
-        return redirect(url_for('candidate_routes.dashboard'))
+        return redirect(url_for('index'))
 
 @candidate_bp.route('/download/<file_type>')
 @login_required
