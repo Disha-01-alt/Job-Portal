@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.full_name or candidate.email }} - Candidate Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-0">{{ candidate.full_name or candidate.email }}</h1>
+                    <p class="text-muted mb-0">Candidate Profile</p>
+                </div>
+                <a href="{{ url_for('company_routes.search_candidates_route') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Search
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Personal Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Full Name</label>
+                            <div class="fw-bold">{{ candidate.full_name or 'Not provided' }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Email</label>
+                            <div>
+                                <i class="fas fa-envelope me-2"></i>
+                                <a href="mailto:{{ candidate.email }}" class="text-decoration-none">
+                                    {{ candidate.email }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Phone</label>
+                            <div>
+                                {% if candidate.phone %}
+                                    <i class="fas fa-phone me-2"></i>
+                                    <a href="tel:{{ candidate.phone }}" class="text-decoration-none">
+                                        {{ candidate.phone }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Member Since</label>
+                            <div>
+                                <i class="fas fa-calendar me-2"></i>
+                                {{ candidate.created_at.strftime('%B %d, %Y') }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Links -->
+                    {% if candidate.linkedin or candidate.github %}
+                        <div class="row">
+                            {% if candidate.linkedin %}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">LinkedIn Profile</label>
+                                    <div>
+                                        <a href="{{ candidate.linkedin }}" target="_blank" class="text-decoration-none">
+                                            <i class="fab fa-linkedin me-2"></i>View LinkedIn Profile
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            {% if candidate.github %}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">GitHub Profile</label>
+                                    <div>
+                                        <a href="{{ candidate.github }}" target="_blank" class="text-decoration-none">
+                                            <i class="fab fa-github me-2"></i>View GitHub Profile
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Professional Summary -->
+            {% if candidate.summary %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-tie me-2"></i>Professional Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-3 bg-secondary rounded">
+                            {{ candidate.summary|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Education -->
+            {% if candidate.education %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-graduation-cap me-2"></i>Education
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-3 bg-secondary rounded">
+                            {{ candidate.education|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Experience -->
+            {% if candidate.experience %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>Experience
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-3 bg-secondary rounded">
+                            {{ candidate.experience|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Skills -->
+            {% if candidate.skills %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tools me-2"></i>Skills
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-3 bg-secondary rounded">
+                            {% set skills_list = candidate.skills.split(',') %}
+                            {% for skill in skills_list %}
+                                <span class="badge bg-primary me-2 mb-2">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Admin Feedback -->
+            {% if candidate.admin_feedback %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments me-2"></i>Admin Feedback
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-3 bg-secondary rounded">
+                            {{ candidate.admin_feedback|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Rating -->
+            {% if candidate.rating %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-star me-2"></i>Admin Rating
+                        </h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            {% for i in range(1, 6) %}
+                                <i class="fas fa-star {{ 'text-warning' if i <= candidate.rating else 'text-muted' }}" 
+                                   style="font-size: 1.5rem;"></i>
+                            {% endfor %}
+                        </div>
+                        <h4 class="text-warning">{{ candidate.rating }}/5</h4>
+                        <p class="text-muted small mb-0">
+                            {% if candidate.rating >= 4 %}
+                                Excellent candidate
+                            {% elif candidate.rating >= 3 %}
+                                Good candidate
+                            {% elif candidate.rating >= 2 %}
+                                Average candidate
+                            {% else %}
+                                Needs improvement
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-star me-2"></i>Admin Rating
+                        </h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <i class="fas fa-hourglass-half text-muted mb-2" style="font-size: 2rem;"></i>
+                        <p class="text-muted mb-0">Not yet rated by admin</p>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Documents -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Documents
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- CV -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <i class="fas fa-file-pdf {{ 'text-danger' if candidate.cv_filename else 'text-muted' }} me-2"></i>
+                            <span class="fw-bold">CV/Resume</span>
+                        </div>
+                        {% if candidate.cv_filename %}
+                            <a href="{{ url_for('company_routes.download_cv', candidate_id=candidate.id) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        {% else %}
+                            <span class="badge bg-secondary">Not available</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- ID Card -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <i class="fas fa-id-card {{ 'text-info' if candidate.id_card_filename else 'text-muted' }} me-2"></i>
+                            <span class="fw-bold">ID Card</span>
+                        </div>
+                        {% if candidate.id_card_filename %}
+                            <span class="badge bg-success">Available</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not available</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Marksheet -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-certificate {{ 'text-success' if candidate.marksheet_filename else 'text-muted' }} me-2"></i>
+                            <span class="fw-bold">12th Marksheet</span>
+                        </div>
+                        {% if candidate.marksheet_filename %}
+                            <span class="badge bg-success">Available</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not available</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-phone me-2"></i>Contact Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="mailto:{{ candidate.email }}" class="btn btn-primary">
+                            <i class="fas fa-envelope me-2"></i>Send Email
+                        </a>
+                        
+                        {% if candidate.phone %}
+                            <a href="tel:{{ candidate.phone }}" class="btn btn-outline-primary">
+                                <i class="fas fa-phone me-2"></i>Call Phone
+                            </a>
+                        {% endif %}
+                        
+                        {% if candidate.linkedin %}
+                            <a href="{{ candidate.linkedin }}" target="_blank" class="btn btn-outline-info">
+                                <i class="fab fa-linkedin me-2"></i>LinkedIn Message
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Completeness -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Profile Completeness
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% set completeness_score = 0 %}
+                    {% if candidate.full_name %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.phone %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.linkedin %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.summary %}{% set completeness_score = completeness_score + 15 %}{% endif %}
+                    {% if candidate.education %}{% set completeness_score = completeness_score + 15 %}{% endif %}
+                    {% if candidate.experience %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.skills %}{% set completeness_score = completeness_score + 15 %}{% endif %}
+                    {% if candidate.cv_filename %}{% set completeness_score = completeness_score + 10 %}{% endif %}
+                    {% if candidate.id_card_filename %}{% set completeness_score = completeness_score + 2.5 %}{% endif %}
+                    {% if candidate.marksheet_filename %}{% set completeness_score = completeness_score + 2.5 %}{% endif %}
+                    
+                    <div class="progress mb-2">
+                        <div class="progress-bar {{ 'bg-success' if completeness_score >= 80 else 'bg-warning' if completeness_score >= 60 else 'bg-danger' }}" 
+                             role="progressbar" style="width: {{ completeness_score }}%">
+                            {{ completeness_score|int }}%
+                        </div>
+                    </div>
+                    
+                    <div class="small text-muted">
+                        {% if completeness_score >= 80 %}
+                            <i class="fas fa-check-circle text-success me-1"></i>Complete and detailed profile
+                        {% elif completeness_score >= 60 %}
+                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>Good profile, some details missing
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger me-1"></i>Incomplete profile
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

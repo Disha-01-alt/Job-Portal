@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Search Candidates - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-search me-2"></i>Search Candidates
+            </h1>
+            <p class="lead text-muted">Find the perfect candidates for your team</p>
+        </div>
+    </div>
+    
+    <!-- Search Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Search Filters
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('company_routes.search_candidates_route') }}">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="skills" class="form-label">Skills</label>
+                                <input type="text" class="form-control" id="skills" name="skills" 
+                                       value="{{ search_filters.skills or '' }}"
+                                       placeholder="e.g. Python, React, Marketing">
+                                <small class="text-muted">Search by technical or soft skills</small>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="education" class="form-label">Education</label>
+                                <input type="text" class="form-control" id="education" name="education" 
+                                       value="{{ search_filters.education or '' }}"
+                                       placeholder="e.g. Computer Science, MBA">
+                                <small class="text-muted">Search by degree or institution</small>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="experience" class="form-label">Experience</label>
+                                <input type="text" class="form-control" id="experience" name="experience" 
+                                       value="{{ search_filters.experience or '' }}"
+                                       placeholder="e.g. Software Developer, Intern">
+                                <small class="text-muted">Search by job titles or experience</small>
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <label for="min_rating" class="form-label">Min Rating</label>
+                                <select class="form-select" id="min_rating" name="min_rating">
+                                    <option value="">Any Rating</option>
+                                    <option value="5" {{ 'selected' if search_filters.min_rating == 5 else '' }}>5 Stars</option>
+                                    <option value="4" {{ 'selected' if search_filters.min_rating == 4 else '' }}>4+ Stars</option>
+                                    <option value="3" {{ 'selected' if search_filters.min_rating == 3 else '' }}>3+ Stars</option>
+                                    <option value="2" {{ 'selected' if search_filters.min_rating == 2 else '' }}>2+ Stars</option>
+                                    <option value="1" {{ 'selected' if search_filters.min_rating == 1 else '' }}>1+ Stars</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-1">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if search_filters.skills or search_filters.education or search_filters.experience or search_filters.min_rating %}
+                            <div class="mt-3">
+                                <a href="{{ url_for('company_routes.search_candidates_route') }}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-times me-1"></i>Clear Filters
+                                </a>
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Results -->
+    {% if candidates %}
+        <!-- Results Summary -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4>Search Results ({{ candidates|length }} candidates)</h4>
+                    
+                    <!-- Sort Options -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" 
+                                data-bs-toggle="dropdown">
+                            <i class="fas fa-sort me-1"></i>Sort By
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="sortCandidates('rating')">Rating (High to Low)</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortCandidates('name')">Name (A to Z)</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sortCandidates('recent')">Most Recent</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Candidates Grid -->
+        <div class="row g-4" id="candidatesGrid">
+            {% for candidate in candidates %}
+                <div class="col-lg-6 candidate-card" 
+                     data-rating="{{ candidate.rating or 0 }}"
+                     data-name="{{ candidate.full_name or candidate.email }}"
+                     data-date="{{ candidate.created_at.isoformat() }}">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1">
+                                        {{ candidate.full_name or candidate.email }}
+                                    </h5>
+                                    <small class="text-muted">{{ candidate.email }}</small>
+                                </div>
+                                
+                                {% if candidate.rating %}
+                                    <div class="text-end ms-3">
+                                        <div class="mb-1">
+                                            {% for i in range(1, 6) %}
+                                                <i class="fas fa-star {{ 'text-warning' if i <= candidate.rating else 'text-muted' }}" 
+                                                   style="font-size: 0.9rem;"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="badge bg-success">{{ candidate.rating }}/5</span>
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-secondary ms-3">Not Rated</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Contact Information -->
+                            <div class="mb-3">
+                                {% if candidate.phone %}
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-phone me-1"></i>{{ candidate.phone }}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="d-flex gap-3">
+                                    {% if candidate.linkedin %}
+                                        <a href="{{ candidate.linkedin }}" target="_blank" 
+                                           class="text-decoration-none small">
+                                            <i class="fab fa-linkedin me-1"></i>LinkedIn
+                                        </a>
+                                    {% endif %}
+                                    {% if candidate.github %}
+                                        <a href="{{ candidate.github }}" target="_blank" 
+                                           class="text-decoration-none small">
+                                            <i class="fab fa-github me-1"></i>GitHub
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Skills -->
+                            {% if candidate.skills %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Skills:</small>
+                                    {% set skills_list = candidate.skills.split(',')[:4] %}
+                                    {% for skill in skills_list %}
+                                        <span class="badge bg-primary me-1 mb-1">{{ skill.strip() }}</span>
+                                    {% endfor %}
+                                    {% if candidate.skills.split(',')|length > 4 %}
+                                        <span class="text-muted small">+{{ candidate.skills.split(',')|length - 4 }} more</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Summary Preview -->
+                            {% if candidate.summary %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Summary:</small>
+                                    <p class="small mb-0">
+                                        {% if candidate.summary|length > 120 %}
+                                            {{ candidate.summary[:120] }}...
+                                        {% else %}
+                                            {{ candidate.summary }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Document Status -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">Documents:</small>
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-{{ 'success' if candidate.cv_filename else 'secondary' }}">
+                                        <i class="fas fa-file-pdf me-1"></i>CV
+                                    </span>
+                                    <span class="badge bg-{{ 'success' if candidate.id_card_filename else 'secondary' }}">
+                                        <i class="fas fa-id-card me-1"></i>ID
+                                    </span>
+                                    <span class="badge bg-{{ 'success' if candidate.marksheet_filename else 'secondary' }}">
+                                        <i class="fas fa-certificate me-1"></i>Marksheet
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Admin Feedback Preview -->
+                            {% if candidate.admin_feedback %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Admin Feedback:</small>
+                                    <div class="small text-muted">
+                                        {% if candidate.admin_feedback|length > 80 %}
+                                            {{ candidate.admin_feedback[:80] }}...
+                                        {% else %}
+                                            {{ candidate.admin_feedback }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 mt-auto">
+                                <a href="{{ url_for('company_routes.candidate_detail', candidate_id=candidate.id) }}" 
+                                   class="btn btn-primary btn-sm flex-fill">
+                                    <i class="fas fa-eye me-1"></i>View Profile
+                                </a>
+                                {% if candidate.cv_filename %}
+                                    <a href="{{ url_for('company_routes.download_cv', candidate_id=candidate.id) }}" 
+                                       class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                Registered {{ candidate.created_at.strftime('%B %d, %Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+    {% else %}
+        <!-- No Results State -->
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                {% if search_filters.skills or search_filters.education or search_filters.experience or search_filters.min_rating %}
+                    <!-- No results for search -->
+                    <i class="fas fa-search-minus text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 mb-3">No Candidates Found</h3>
+                    <p class="text-muted mb-4">
+                        No candidates match your current search criteria. 
+                        Try adjusting your filters or search terms.
+                    </p>
+                    <a href="{{ url_for('company_routes.search_candidates_route') }}" class="btn btn-primary">
+                        <i class="fas fa-times me-2"></i>Clear All Filters
+                    </a>
+                {% else %}
+                    <!-- No candidates at all -->
+                    <i class="fas fa-users text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 mb-3">No Candidates Available</h3>
+                    <p class="text-muted mb-4">
+                        There are no candidates in the database yet. 
+                        Please check back later as new candidates register.
+                    </p>
+                    <a href="{{ url_for('company_routes.dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function sortCandidates(sortBy) {
+    const grid = document.getElementById('candidatesGrid');
+    const cards = Array.from(grid.querySelectorAll('.candidate-card'));
+    
+    cards.sort((a, b) => {
+        switch(sortBy) {
+            case 'rating':
+                return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
+            case 'name':
+                return a.dataset.name.localeCompare(b.dataset.name);
+            case 'recent':
+                return new Date(b.dataset.date) - new Date(a.dataset.date);
+            default:
+                return 0;
+        }
+    });
+    
+    // Clear and re-append sorted cards
+    grid.innerHTML = '';
+    cards.forEach(card => grid.appendChild(card));
+}
+</script>
+{% endblock %}

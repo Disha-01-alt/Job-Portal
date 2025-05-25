@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Review Candidates - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-users me-2"></i>Review Candidates
+            </h1>
+            <p class="lead text-muted">Rate and provide feedback to candidates</p>
+        </div>
+    </div>
+    
+    {% if candidates %}
+        <!-- Summary Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="text-primary">{{ candidates|length }}</h4>
+                        <small>Total Candidates</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="text-success">{{ candidates|selectattr('rating')|list|length }}</h4>
+                        <small>Rated</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="text-warning">{{ candidates|rejectattr('rating')|list|length }}</h4>
+                        <small>Pending Review</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="text-info">{{ candidates|selectattr('cv_filename')|list|length }}</h4>
+                        <small>With CV</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Filter by Status</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Candidates</option>
+                                    <option value="rated">Rated</option>
+                                    <option value="unrated">Pending Review</option>
+                                    <option value="with-cv">With CV</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Minimum Rating</label>
+                                <select class="form-select" id="ratingFilter">
+                                    <option value="">Any Rating</option>
+                                    <option value="5">5 Stars</option>
+                                    <option value="4">4+ Stars</option>
+                                    <option value="3">3+ Stars</option>
+                                    <option value="2">2+ Stars</option>
+                                    <option value="1">1+ Stars</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Search</label>
+                                <input type="text" class="form-control" id="searchFilter" 
+                                       placeholder="Search by name, email, or skills...">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Candidates List -->
+        <div class="row" id="candidatesList">
+            {% for candidate in candidates %}
+                <div class="col-lg-6 mb-4 candidate-card" 
+                     data-rating="{{ candidate.rating or 0 }}"
+                     data-status="{{ 'rated' if candidate.rating else 'unrated' }}"
+                     data-has-cv="{{ 'true' if candidate.cv_filename else 'false' }}"
+                     data-search="{{ (candidate.full_name or candidate.email)|lower }} {{ (candidate.skills or '')|lower }}">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1">
+                                        {{ candidate.full_name or candidate.email }}
+                                    </h5>
+                                    <small class="text-muted">{{ candidate.email }}</small>
+                                </div>
+                                
+                                {% if candidate.rating %}
+                                    <div class="text-end">
+                                        <div class="mb-1">
+                                            {% for i in range(1, 6) %}
+                                                <i class="fas fa-star {{ 'text-warning' if i <= candidate.rating else 'text-muted' }}" 
+                                                   style="font-size: 0.9rem;"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="badge bg-success">{{ candidate.rating }}/5</span>
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending Review</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Contact Information -->
+                            <div class="mb-3">
+                                {% if candidate.phone %}
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-phone me-1"></i>{{ candidate.phone }}
+                                    </div>
+                                {% endif %}
+                                {% if candidate.linkedin %}
+                                    <div class="small mb-1">
+                                        <a href="{{ candidate.linkedin }}" target="_blank" class="text-decoration-none">
+                                            <i class="fab fa-linkedin me-1"></i>LinkedIn Profile
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                {% if candidate.github %}
+                                    <div class="small mb-1">
+                                        <a href="{{ candidate.github }}" target="_blank" class="text-decoration-none">
+                                            <i class="fab fa-github me-1"></i>GitHub Profile
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Skills Preview -->
+                            {% if candidate.skills %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Skills:</small>
+                                    <div class="small">
+                                        {% set skills_list = candidate.skills.split(',')[:3] %}
+                                        {% for skill in skills_list %}
+                                            <span class="badge bg-secondary me-1">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                        {% if candidate.skills.split(',')|length > 3 %}
+                                            <span class="text-muted">+{{ candidate.skills.split(',')|length - 3 }} more</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Documents Status -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Documents:</small>
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-{{ 'success' if candidate.cv_filename else 'secondary' }}">
+                                        <i class="fas fa-file-pdf me-1"></i>CV
+                                    </span>
+                                    <span class="badge bg-{{ 'success' if candidate.id_card_filename else 'secondary' }}">
+                                        <i class="fas fa-id-card me-1"></i>ID
+                                    </span>
+                                    <span class="badge bg-{{ 'success' if candidate.marksheet_filename else 'secondary' }}">
+                                        <i class="fas fa-certificate me-1"></i>Marksheet
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Admin Feedback Preview -->
+                            {% if candidate.admin_feedback %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Previous Feedback:</small>
+                                    <div class="small text-muted">
+                                        {% if candidate.admin_feedback|length > 100 %}
+                                            {{ candidate.admin_feedback[:100] }}...
+                                        {% else %}
+                                            {{ candidate.admin_feedback }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 mt-auto">
+                                <a href="{{ url_for('admin_routes.candidate_detail', candidate_id=candidate.id) }}" 
+                                   class="btn btn-primary btn-sm flex-fill">
+                                    <i class="fas fa-eye me-1"></i>Review
+                                </a>
+                                {% if candidate.cv_filename %}
+                                    <a href="{{ url_for('admin_routes.download_cv', candidate_id=candidate.id) }}" 
+                                       class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                Registered {{ candidate.created_at.strftime('%B %d, %Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+    {% else %}
+        <!-- No Candidates State -->
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-users text-muted" style="font-size: 5rem;"></i>
+                <h3 class="mt-4 mb-3">No Candidates Yet</h3>
+                <p class="text-muted mb-4">
+                    No candidates have registered on the platform yet. 
+                    Once candidates start signing up, you'll be able to review and rate them here.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const statusFilter = document.getElementById('statusFilter');
+    const ratingFilter = document.getElementById('ratingFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    
+    function applyFilters() {
+        const statusValue = statusFilter.value;
+        const ratingValue = parseInt(ratingFilter.value) || 0;
+        const searchValue = searchFilter.value.toLowerCase();
+        
+        const cards = document.querySelectorAll('.candidate-card');
+        
+        cards.forEach(card => {
+            let show = true;
+            
+            // Status filter
+            if (statusValue === 'rated' && card.dataset.status !== 'rated') show = false;
+            if (statusValue === 'unrated' && card.dataset.status !== 'unrated') show = false;
+            if (statusValue === 'with-cv' && card.dataset.hasCv !== 'true') show = false;
+            
+            // Rating filter
+            if (ratingValue > 0 && parseInt(card.dataset.rating) < ratingValue) show = false;
+            
+            // Search filter
+            if (searchValue && !card.dataset.search.includes(searchValue)) show = false;
+            
+            card.style.display = show ? 'block' : 'none';
+        });
+    }
+    
+    statusFilter.addEventListener('change', applyFilters);
+    ratingFilter.addEventListener('change', applyFilters);
+    searchFilter.addEventListener('input', applyFilters);
+});
+
+function clearFilters() {
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('ratingFilter').value = '';
+    document.getElementById('searchFilter').value = '';
+    
+    document.querySelectorAll('.candidate-card').forEach(card => {
+        card.style.display = 'block';
+    });
+}
+</script>
+{% endblock %}

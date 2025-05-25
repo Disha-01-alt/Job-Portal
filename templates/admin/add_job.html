@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Job' if edit_mode else 'Add Job' }} - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-{{ 'edit' if edit_mode else 'plus' }} me-2"></i>
+                {{ 'Edit Job' if edit_mode else 'Add New Job' }}
+            </h1>
+            {% if not edit_mode %}
+                <p class="lead text-muted">Extract job information from LinkedIn using AI</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if not edit_mode %}
+        <!-- LinkedIn URL Form -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fab fa-linkedin me-2"></i>LinkedIn Job Extraction
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="linkedin_url" class="form-label">LinkedIn Job URL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fab fa-linkedin"></i>
+                                    </span>
+                                    <input type="url" class="form-control" id="linkedin_url" name="linkedin_url" 
+                                           placeholder="https://www.linkedin.com/jobs/view/..." required>
+                                </div>
+                                <small class="text-muted">
+                                    Paste the LinkedIn job posting URL and our AI will extract the job details automatically.
+                                </small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-magic me-2"></i>Extract Job Information
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>How it works
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ol class="small">
+                            <li>Copy the LinkedIn job posting URL</li>
+                            <li>Paste it in the field above</li>
+                            <li>Our AI extracts job details automatically</li>
+                            <li>Review and save the job posting</li>
+                        </ol>
+                        <div class="alert alert-info small">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            The AI will extract title, company, location, description, requirements, and other details.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Manual Job Edit Form -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Edit Job Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="title" class="form-label">Job Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           value="{{ job.title if job else '' }}" required>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="company" class="form-label">Company *</label>
+                                    <input type="text" class="form-control" id="company" name="company" 
+                                           value="{{ job.company if job else '' }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="location" class="form-label">Location *</label>
+                                    <input type="text" class="form-control" id="location" name="location" 
+                                           value="{{ job.location if job else '' }}" required>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="job_type" class="form-label">Job Type</label>
+                                    <select class="form-select" id="job_type" name="job_type">
+                                        <option value="">Select job type</option>
+                                        <option value="Full-time" {{ 'selected' if job and job.job_type == 'Full-time' else '' }}>Full-time</option>
+                                        <option value="Part-time" {{ 'selected' if job and job.job_type == 'Part-time' else '' }}>Part-time</option>
+                                        <option value="Contract" {{ 'selected' if job and job.job_type == 'Contract' else '' }}>Contract</option>
+                                        <option value="Internship" {{ 'selected' if job and job.job_type == 'Internship' else '' }}>Internship</option>
+                                        <option value="Remote" {{ 'selected' if job and job.job_type == 'Remote' else '' }}>Remote</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="salary_range" class="form-label">Salary Range</label>
+                                <input type="text" class="form-control" id="salary_range" name="salary_range" 
+                                       value="{{ job.salary_range if job and job.salary_range else '' }}"
+                                       placeholder="e.g., $50,000 - $70,000">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Job Description *</label>
+                                <textarea class="form-control" id="description" name="description" rows="5" required>{{ job.description if job else '' }}</textarea>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="requirements" class="form-label">Requirements *</label>
+                                <textarea class="form-control" id="requirements" name="requirements" rows="4" required>{{ job.requirements if job else '' }}</textarea>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Job
+                                </button>
+                                <a href="{{ url_for('admin_routes.manage_jobs') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Job Information
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if job %}
+                            <p><strong>Posted:</strong> {{ job.created_at.strftime('%B %d, %Y') }}</p>
+                            {% if job.linkedin_url %}
+                                <p><strong>Source:</strong> 
+                                    <a href="{{ job.linkedin_url }}" target="_blank" class="text-decoration-none">
+                                        <i class="fab fa-linkedin me-1"></i>LinkedIn
+                                    </a>
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <div class="alert alert-warning small">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Make sure all required fields are filled out completely for the best candidate matching.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
