@@ -14,9 +14,11 @@ def allowed_file(filename, allowed_extensions):
 @candidate_bp.before_request
 @login_required 
 def check_candidate_role():
+    # If the request is for the 'jobs' endpoint within this blueprint, allow it.
     if request.endpoint == 'candidate_routes.jobs':
-        logging.debug(f"Accessing {request.endpoint}, skipping role check for authenticated user.")
-        return  # Proceed to the jobs route
+        logging.debug(f"User {current_user.email} accessing endpoint {request.endpoint}. Allowing without specific role check.")
+        return  # Proceed to the jobs route for any authenticated user
+
     if current_user.role != 'candidate':
         flash('Access denied. This area is for candidates only.', 'error')
         return redirect(url_for('index'))
