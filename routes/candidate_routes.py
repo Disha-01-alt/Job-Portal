@@ -20,6 +20,10 @@ def check_candidate_role():
         return  # Proceed to the jobs route for any authenticated user
 
     if current_user.role != 'candidate':
+        if current_user.role == 'pending_setup' or session.get('needs_registration_completion'):
+            flash('Please complete your registration to access this feature.', 'info')
+            return redirect(url_for('auth_routes.complete_registration')) # Send them to complete it
+
         flash('Access denied. This area is for candidates only.', 'error')
         return redirect(url_for('index'))
 
