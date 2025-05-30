@@ -29,6 +29,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
+                        <!-- Browse Jobs for all logged-in users -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('candidate_routes.jobs') }}">
+                                <i class="fas fa-briefcase me-1"></i>Browse Jobs
+                            </a>
+                        </li>
+                        
                         {% if current_user.role == 'candidate' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('candidate_routes.dashboard') }}">
@@ -38,11 +45,6 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('candidate_routes.profile') }}">
                                     <i class="fas fa-user me-1"></i>Profile
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('candidate_routes.jobs') }}">
-                                    <i class="fas fa-search me-1"></i>Browse Jobs
                                 </a>
                             </li>
                         {% elif current_user.role == 'admin' %}
@@ -99,11 +101,7 @@
                             </ul>
                         </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('candidate_routes.jobs') }}">
-                                <i class="fas fa-briefcase me-1"></i>Browse Jobs
-                            </a>
-                        </li>
+                        <!-- Only Sign In shown to unauthenticated users -->
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('google_auth.login') }}">
                                 <i class="fab fa-google me-1"></i>Sign In
