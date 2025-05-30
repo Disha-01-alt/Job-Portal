@@ -380,7 +380,7 @@ def get_all_candidates():
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute("""
             SELECT u.id, u.email, u.full_name, u.phone, u.linkedin, u.github, u.created_at,
-                   cp.summary, cp.education, cp.experience, cp.skills, 
+                   cp.summary,
                    cp.cv_filename, cp.id_card_filename, cp.marksheet_filename,
                    cp.rating, cp.admin_feedback,
                    -- New candidate profile fields
@@ -403,9 +403,6 @@ def get_all_candidates():
                 'linkedin': row['linkedin'],
                 'github': row['github'],
                 'summary': row['summary'],
-                'education': row['education'],
-                'experience': row['experience'],
-                'skills': row['skills'],
                 'cv_filename': row['cv_filename'],
                 'id_card_filename': row['id_card_filename'],
                 'marksheet_filename': row['marksheet_filename'],
@@ -471,7 +468,7 @@ def search_candidates(skills=None, education=None, min_rating=None, experience=N
         
         query = """
             SELECT u.id, u.email, u.full_name, u.phone, u.linkedin, u.github, u.created_at,
-                   cp.summary, cp.education, cp.experience, cp.skills, 
+                   cp.summary, 
                    cp.cv_filename, cp.id_card_filename, cp.marksheet_filename, -- Added for company detail view potentially
                    cp.rating, cp.admin_feedback,
                    -- New fields relevant for company search/display
