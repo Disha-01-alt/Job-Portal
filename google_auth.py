@@ -3,7 +3,7 @@ import json
 import os
 import requests
 from flask import Blueprint, redirect, request, url_for, session, flash
-from flask_login import login_user, logout_user, current_user # Added current_user for logout
+from flask_login import login_user, logout_user, current_user,login_required # Added current_user for logout
 from oauthlib.oauth2 import WebApplicationClient
 from database import get_user_by_email, create_user # Assuming create_user is needed if registration completion creates user
 from models import User
