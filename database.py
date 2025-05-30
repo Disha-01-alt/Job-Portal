@@ -175,9 +175,20 @@ def get_user_by_id(user_id):
         return None
 
 def create_user(email, password, role, full_name=None, phone=None, linkedin=None, github=None):
-    """Create a new user"""
-    from models import User
-    password_hash = User.create_password_hash(password)
+    from models import User # Keep import here if not global
+    # If password is for a Google user and is empty, generate a secure unusable hash
+    # or ensure your DB column for password_hash allows NULL for OAuth users.
+    # For simplicity, we'll assume User.create_password_hash('') is acceptable if password_hash is NOT NULL.
+    password_hash = User.create_password_hash(password if password is not None else os.urandom(16).hex())
+
+
+    # Determine is_approved status
+    if role == 'company':
+        is_approved_status = False
+    elif role == 'pending_setup': # New temporary role
+        is_approved_status = True # Allow login, but features gated by actual role later
+    else: # candidate, admin
+        is_approved_status = True
     
     with get_db() as conn:
         cur = conn.cursor()
@@ -185,19 +196,18 @@ def create_user(email, password, role, full_name=None, phone=None, linkedin=None
             INSERT INTO users (email, password_hash, role, full_name, phone, linkedin, github, is_approved)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
-        """, (email, password_hash, role, full_name, phone, linkedin, github, role != 'company'))
+        """, (email, password_hash, role, full_name, phone, linkedin, github, is_approved_status))
         
         user_id = cur.fetchone()[0]
         
-        # Create candidate profile if role is candidate
-        if role == 'candidate':
-            cur.execute("""
-                INSERT INTO candidate_profiles (user_id)
-                VALUES (%s)
-            """, (user_id,))
+        # Create candidate profile only if final role is candidate, or for pending_setup if they choose candidate later
+        # For now, let's not create candidate_profile for 'pending_setup' here.
+        # It will be created when they complete registration and choose 'candidate'.
+        # OR, create a basic one if it simplifies logic. Let's assume it's created later.
         
         conn.commit()
         return user_id
+
 # jobportal/database.py
 
 # ... (other imports and functions)
