@@ -20,6 +20,7 @@ def get_redirect_url():
     """Get redirect URI depending on environment."""
     Production_domain = os.environ.get("Production_domain")
     if Production_domain:
+        print("ID is saying","https://{Production_domain}/google_login/callback")
         return f"https://{Production_domain}/google_login/callback"
     return "http://localhost:5000/google_login/callback"
 
