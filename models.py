@@ -47,9 +47,6 @@ class CandidateProfile:
                  ):
         self.user_id = user_id
         self.summary = summary
-        self.education = education # Will need careful handling if storing structured data
-        self.experience = experience
-        self.skills = skills # Will need careful handling if storing structured data
         self.cv_filename = cv_filename
         self.id_card_filename = id_card_filename
         self.marksheet_filename = marksheet_filename
