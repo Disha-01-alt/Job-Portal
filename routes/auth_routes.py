@@ -1,187 +1,173 @@
+# jobportal/routes/auth_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from flask_login import login_user, logout_user, current_user
-from database import get_user_by_email, create_user
-from models import User
+from flask_login import login_user, logout_user, current_user # current_user might be used for conditional rendering
+from database import get_user_by_email, create_user, get_user_by_id # Ensure get_user_by_id is available
+from models import User 
 import logging
 
 auth_bp = Blueprint('auth_routes', __name__)
 
+# This /login route is for a potential manual email/password login form.
+# If you are ONLY using Google Sign-In, this route might not be directly used by users,
+# but Flask-Login needs a login_view. It can simply redirect to Google login.
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        # Redirect based on role if already logged in
+        if current_user.role == 'candidate': return redirect(url_for('candidate_routes.dashboard'))
+        if current_user.role == 'admin': return redirect(url_for('admin_routes.dashboard'))
+        if current_user.role == 'company': return redirect(url_for('company_routes.dashboard'))
         return redirect(url_for('index'))
     
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
-        
-        if not email or not password:
-            flash('Please provide both email and password.', 'error')
-            return render_template('auth/login.html')
-        
-        try:
-            user = get_user_by_email(email)
-            
-            if user and user.check_password(password):
-                if not user.is_approved and user.role == 'company':
-                    flash('Your account is pending approval. Please contact the administrator.', 'warning')
-                    return render_template('auth/login.html')
-                
-                login_user(user)
-                flash(f'Welcome back, {user.full_name or user.email}!', 'success')
-                
-                # Redirect based on role
-                if user.role == 'candidate':
-                    return redirect(url_for('candidate_routes.dashboard'))
-                elif user.role == 'admin':
-                    return redirect(url_for('admin_routes.dashboard'))
-                elif user.role == 'company':
-                    return redirect(url_for('company_routes.dashboard'))
-                else:
-                    return redirect(url_for('index'))
-            else:
-                flash('Invalid email or password.', 'error')
-        
-        except Exception as e:
-            logging.error(f"Login error: {e}")
-            flash('An error occurred during login. Please try again.', 'error')
-    
-    return render_template('auth/login.html')
+    # For now, if someone hits /auth/login, guide them to Google Sign-In
+    flash("Please use Google Sign-In to access your account.", "info")
+    return redirect(url_for('google_auth.login'))
+
+    # If you were to implement manual login:
+    # if request.method == 'POST':
+    #     email = request.form.get('email', '').strip().lower()
+    #     password = request.form.get('password', '')
+    #     # ... (manual password checking logic) ...
+    # return render_template('auth/login.html') # A page with manual login form
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
-def register():
+def register(): # For manual registration
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('index')) 
     
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         role = request.form.get('role', '')
         full_name = request.form.get('full_name', '').strip()
-        phone = request.form.get('phone', '').strip()
-        linkedin = request.form.get('linkedin', '').strip()
-        github = request.form.get('github', '').strip()
+        phone = request.form.get('phone', '').strip() or None
+        linkedin = request.form.get('linkedin', '').strip() or None
+        github = request.form.get('github', '').strip() or None
         
-        # Validation
+        errors = []
         if not all([email, password, confirm_password, role, full_name]):
-            flash('Please fill in all required fields.', 'error')
-            return render_template('auth/register.html')
-        
+            errors.append('Please fill in all required fields (*).')
         if password != confirm_password:
-            flash('Passwords do not match.', 'error')
-            return render_template('auth/register.html')
-        
+            errors.append('Passwords do not match.')
         if len(password) < 6:
-            flash('Password must be at least 6 characters long.', 'error')
-            return render_template('auth/register.html')
-        
+            errors.append('Password must be at least 6 characters long.')
         if role not in ['candidate', 'company']:
-            flash('Invalid role selected.', 'error')
-            return render_template('auth/register.html')
+            errors.append('Invalid role selected.')
         
-        try:
-            # Check if email already exists
+        if not errors:
             existing_user = get_user_by_email(email)
             if existing_user:
-                flash('An account with this email already exists.', 'error')
-                return render_template('auth/register.html')
-            
-            # Create new user
-            user_id = create_user(
-                email=email,
-                password=password,
-                role=role,
-                full_name=full_name,
-                phone=phone or None,
-                linkedin=linkedin or None,
-                github=github or None
+                errors.append('An account with this email already exists. Please login or use a different email.')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return render_template('auth/register.html', form_data=request.form)
+        
+        try:
+            user_id = create_user( # create_user in database.py hashes the password
+                email=email, password=password, role=role, full_name=full_name,
+                phone=phone, linkedin=linkedin, github=github
             )
+            logging.info(f"Manual registration successful for {email}, role: {role}, user_id: {user_id}")
             
             if role == 'company':
-                flash('Account created successfully! Your account is pending approval by an administrator.', 'info')
+                flash('Account created! Your company account is pending admin approval.', 'info')
             else:
                 flash('Account created successfully! You can now log in.', 'success')
-            
-            return redirect(url_for('auth_routes.login'))
+            return redirect(url_for('google_auth.login')) # Redirect to login page after manual registration
         
         except Exception as e:
-            logging.error(f"Registration error: {e}")
+            logging.exception(f"Error during manual registration for {email}:")
             flash('An error occurred during registration. Please try again.', 'error')
-    
-    return render_template('auth/register.html')
+            return render_template('auth/register.html', form_data=request.form)
+
+    return render_template('auth/register.html') # For GET request
 
 @auth_bp.route('/complete_registration', methods=['GET', 'POST'])
 def complete_registration():
-    # Check if user has Google info in session
     if not session.get('pending_registration') or not session.get('google_email'):
-        flash('Registration session expired. Please sign in with Google again.', 'error')
-        return redirect(url_for('index'))
+        flash('Invalid registration session. Please try signing in with Google again.', 'warning')
+        return redirect(url_for('google_auth.login'))
     
     if request.method == 'POST':
         role = request.form.get('role')
-        full_name = request.form.get('full_name', '').strip()
-        phone = request.form.get('phone', '').strip()
-        linkedin = request.form.get('linkedin', '').strip()
-        github = request.form.get('github', '').strip()
+        # Use Google name from session as default if form field is empty, else use form field
+        full_name_from_form = request.form.get('full_name', '').strip()
+        full_name_to_save = full_name_from_form if full_name_from_form else session.get('google_name', 'New User')
+        
+        phone_to_save = request.form.get('phone', '').strip() or None
+        linkedin_to_save = request.form.get('linkedin', '').strip() or None
+        github_to_save = request.form.get('github', '').strip() or None
         
         if not role or role not in ['candidate', 'company']:
             flash('Please select a valid role.', 'error')
-            return render_template('auth/complete_registration.html')
+            return render_template('auth/complete_registration.html', 
+                                 google_name=session.get('google_name'), 
+                                 google_email=session.get('google_email'),
+                                 form_data=request.form) # Pass back form data
         
-        try:
-            # Create user account
-            user_id = create_user(
-                email=session['google_email'],
-                password='',  # No password needed for Google auth
-                role=role,
-                full_name=full_name,
-                phone=phone,
-                linkedin=linkedin,
-                github=github
-            )
-            
-            # Clear registration session
+        google_email_from_session = session['google_email']
+        
+        # Defensive check: Ensure user wasn't created in a concurrent request or by other means
+        if get_user_by_email(google_email_from_session):
+            flash('This Google account is already registered. Please log in.', 'info')
             session.pop('pending_registration', None)
-            
-            # Create user object and log them in
-            user = User(
-                user_id=user_id,
-                email=session['google_email'],
-                password_hash='',
+            session.pop('google_email', None) 
+            return redirect(url_for('google_auth.login'))
+
+        try:
+            # Create user account. password_hash in DB will be hash of empty string.
+            user_id = create_user(
+                email=google_email_from_session,
+                password='',  # For Google-auth, password isn't set here
                 role=role,
-                full_name=full_name,
-                phone=phone,
-                linkedin=linkedin,
-                github=github,
-                is_approved=(role != 'company')  # Companies need approval
+                full_name=full_name_to_save,
+                phone=phone_to_save,
+                linkedin=linkedin_to_save,
+                github=github_to_save
             )
-            login_user(user)
+            logging.info(f"Google user registration completed for {google_email_from_session}, role: {role}, user_id: {user_id}")
+
+            newly_created_user = get_user_by_id(user_id)
+            if not newly_created_user:
+                logging.error(f"Failed to fetch newly created user (ID: {user_id}) after completing registration.")
+                flash("Critical error during registration. Account might not be fully active. Please contact support.", "error")
+                session.pop('pending_registration', None) # Clean up session
+                session.pop('google_email', None)
+                return redirect(url_for('google_auth.login'))
+
+            login_user(newly_created_user) # Log in the newly created user
             
+            # Clear sensitive/temporary session data
+            session.pop('pending_registration', None)
+            session.pop('google_email', None) 
+            # Keep 'google_id', 'google_name', 'google_picture' if used for display in base.html for logged-in user
+
             if role == 'company':
-                flash('Your company account has been created and is pending admin approval. You will be notified once approved.', 'info')
-                return redirect(url_for('index'))
-            else:
-                flash('Welcome! Your account has been created successfully.', 'success')
+                if not newly_created_user.is_approved: # is_approved is set by create_user
+                    flash('Your company account has been created and is pending admin approval. You will be notified.', 'info')
+                    return redirect(url_for('index')) # Or a specific "pending" page
+                else: # Should not happen for new companies if default is_approved is False
+                    flash('Company account created and approved!', 'success')
+                    return redirect(url_for('company_routes.dashboard'))
+            else: # Candidate
+                flash(f'Welcome, {newly_created_user.full_name}! Your account is ready.', 'success')
                 return redirect(url_for('candidate_routes.dashboard'))
                 
         except Exception as e:
-            logging.error(f"Error creating user: {e}")
-            flash('Error creating account. Please try again.', 'error')
-    
+            logging.exception(f"Error completing registration for Google user {session.get('google_email')}:")
+            flash(f'Error creating your account: {str(e)}. Please try again.', 'error')
+            return render_template('auth/complete_registration.html',
+                                 google_name=session.get('google_name'),
+                                 google_email=session.get('google_email'),
+                                 form_data=request.form) # Pass back form data for pre-filling
+                                 
+    # GET request to /complete_registration
     return render_template('auth/complete_registration.html', 
-                         google_name=session.get('google_name'),
-                         google_email=session.get('google_email'))
+                         google_name=session.get('google_name'), # For pre-filling name field
+                         google_email=session.get('google_email')) # For display
 
-@auth_bp.route('/logout')
-def logout():
-    logout_user()
-    # Clear all Google-related session data
-    session.pop('google_id', None)
-    session.pop('google_email', None)
-    session.pop('google_name', None)
-    session.pop('google_picture', None)
-    session.pop('pending_registration', None)
-    
-    flash('You have been logged out successfully.', 'info')
-    return redirect(url_for('index'))
+# Note: The main logout (/logout or /google_logout) is in google_auth.py now
+# as it needs to clear Google-specific session keys.
