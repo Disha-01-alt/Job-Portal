@@ -209,7 +209,7 @@ def get_candidate_details_by_id(user_id):
         cur.execute("""
             SELECT u.id, u.email, u.full_name, u.phone, u.linkedin, u.github, u.created_at,
                    u.is_approved,
-                   cp.user_id as profile_user_id, cp.summary, cp.education, cp.experience, cp.skills, 
+                   cp.user_id as profile_user_id, cp.summary,
                    cp.cv_filename, cp.id_card_filename, cp.marksheet_filename,
                    cp.rating, cp.admin_feedback, cp.updated_at as profile_updated_at
             FROM users u
@@ -232,7 +232,7 @@ def get_candidate_profile(user_id):
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         # Ensure all new columns are selected
         cur.execute("""
-            SELECT user_id, summary, education, experience, skills, 
+            SELECT user_id, summary,
                    cv_filename, id_card_filename, marksheet_filename, 
                    rating, admin_feedback, updated_at,
                    ews_certificate_filename, college_name, degree, graduation_year,
@@ -246,9 +246,6 @@ def get_candidate_profile(user_id):
             return CandidateProfile(
                 user_id=row['user_id'],
                 summary=row['summary'],
-                education=row['education'],
-                experience=row['experience'],
-                skills=row['skills'],
                 cv_filename=row['cv_filename'],
                 id_card_filename=row['id_card_filename'],
                 marksheet_filename=row['marksheet_filename'],
