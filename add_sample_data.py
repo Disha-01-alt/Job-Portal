@@ -4,55 +4,102 @@ One-time script to populate the job portal database with sample data.
 Run this once to add sample jobs and candidates to your database.
 """
 
-import os
 import psycopg2
 from datetime import datetime
 
 def add_sample_data():
     try:
-        # Connect to database using environment variable
-        conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+        # Connect to database
+        conn = psycopg2.connect("postgresql://postgres:Admin@localhost:5432/job_data")
         cur = conn.cursor()
         
         print("Adding sample jobs...")
         
-        # Add sample jobs
+        # Adapted job data to match your table columns
         jobs_data = [
-            ('Senior Software Engineer', 'Tech Innovation Inc', 'San Francisco, CA', 
-             'We are looking for a senior software engineer to join our dynamic team. You will be responsible for developing scalable web applications and mentoring junior developers.',
-             'Bachelor\'s degree in Computer Science, 5+ years experience with Python/JavaScript, Experience with React and Node.js',
-             '$120,000 - $150,000', 'Full-time', 3),
-            
-            ('Data Scientist', 'DataCorp Analytics', 'New York, NY',
-             'Join our data science team to analyze large datasets and build machine learning models that drive business decisions.',
-             'Master\'s degree in Data Science or related field, Proficiency in Python, R, SQL, Experience with machine learning frameworks',
-             '$100,000 - $130,000', 'Full-time', 3),
-            
-            ('Frontend Developer', 'Creative Digital Agency', 'Austin, TX',
-             'We need a creative frontend developer to build stunning user interfaces and ensure excellent user experience across our web applications.',
-             'Bachelor\'s degree in Web Development or related field, Expert knowledge of HTML, CSS, JavaScript, Experience with Vue.js or React',
-             '$80,000 - $110,000', 'Full-time', 3),
-            
-            ('Product Manager', 'StartupXYZ', 'Seattle, WA',
-             'Lead product development from conception to launch. Work closely with engineering and design teams to build products users love.',
-             'MBA or equivalent experience, 3+ years product management experience, Strong analytical and communication skills',
-             '$110,000 - $140,000', 'Full-time', 3),
-            
-            ('DevOps Engineer', 'CloudTech Solutions', 'Remote',
-             'Help us build and maintain our cloud infrastructure. You will work with containerization, CI/CD pipelines, and monitoring systems.',
-             'Bachelor\'s degree in Engineering, Experience with AWS/Azure, Docker, Kubernetes, Jenkins or similar CI/CD tools',
-             '$95,000 - $125,000', 'Remote', 3)
+            (
+                'Senior Software Engineer',          # job_title
+                'Tech Innovation Inc',               # company_name
+                'San Francisco, CA',                 # location
+                "Bachelor's degree in Computer Science, 5+ years experience with Python/JavaScript, Experience with React and Node.js",  # required_skills
+                '2024-05-01',                       # publication_date (as text to match your schema)
+                'HR Team',                         # author
+                'https://techinnovation.example/jobs/123',  # url
+                '3+ years',                       # experience_required
+                '$120,000 - $150,000',             # salary_range
+                'Not Applied',                     # application_status (default but explicit here)
+                '{}',                             # additional_info as empty JSON string
+                datetime.now()                    # created_at
+            ),
+            (
+                'Data Scientist',
+                'DataCorp Analytics',
+                'New York, NY',
+                "Master's degree in Data Science or related field, Proficiency in Python, R, SQL, Experience with machine learning frameworks",
+                '2024-05-02',
+                'HR Team',
+                'https://datacorp.example/jobs/456',
+                '2+ years',
+                '$100,000 - $130,000',
+                'Not Applied',
+                '{}',
+                datetime.now()
+            ),
+            (
+                'Frontend Developer',
+                'Creative Digital Agency',
+                'Austin, TX',
+                "Bachelor's degree in Web Development or related field, Expert knowledge of HTML, CSS, JavaScript, Experience with Vue.js or React",
+                '2024-05-03',
+                'HR Team',
+                'https://creativeagency.example/jobs/789',
+                '2+ years',
+                '$80,000 - $110,000',
+                'Not Applied',
+                '{}',
+                datetime.now()
+            ),
+            (
+                'Product Manager',
+                'StartupXYZ',
+                'Seattle, WA',
+                "MBA or equivalent experience, 3+ years product management experience, Strong analytical and communication skills",
+                '2024-05-04',
+                'HR Team',
+                'https://startupxyz.example/jobs/101',
+                '3+ years',
+                '$110,000 - $140,000',
+                'Not Applied',
+                '{}',
+                datetime.now()
+            ),
+            (
+                'DevOps Engineer',
+                'CloudTech Solutions',
+                'Remote',
+                "Bachelor's degree in Engineering, Experience with AWS/Azure, Docker, Kubernetes, Jenkins or similar CI/CD tools",
+                '2024-05-05',
+                'HR Team',
+                'https://cloudtech.example/jobs/202',
+                '3+ years',
+                '$95,000 - $125,000',
+                'Not Applied',
+                '{}',
+                datetime.now()
+            )
         ]
         
         for job in jobs_data:
             cur.execute("""
-                INSERT INTO jobs (title, company, location, description, requirements, salary_range, job_type, posted_by, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                INSERT INTO jobs (
+                    job_title, company, location, required_skills, publication_date, author, url,
+                    experience_required, salary_range, application_status, additional_info, created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
             """, job)
         
         print("Adding sample candidates...")
         
-        # Add sample candidates
+        # Sample candidates - adjust columns as needed if your users table differs
         candidates_data = [
             ('sarah.johnson@email.com', '', 'candidate', 'Sarah Johnson', '+1-555-0123', 
              'https://linkedin.com/in/sarahjohnson', 'https://github.com/sarahjohnson', True),
@@ -66,11 +113,12 @@ def add_sample_data():
         
         for candidate in candidates_data:
             cur.execute("""
-                INSERT INTO users (email, password_hash, role, full_name, phone, linkedin, github, created_at, is_approved)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s)
+                INSERT INTO users (
+                    email, password_hash, role, full_name, phone, linkedin, github, created_at, is_approved
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s)
             """, candidate)
         
-        # Commit all changes
+        # Commit changes
         conn.commit()
         cur.close()
         conn.close()
@@ -87,3 +135,4 @@ def add_sample_data():
 
 if __name__ == "__main__":
     add_sample_data()
+

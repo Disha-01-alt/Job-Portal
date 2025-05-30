@@ -31,70 +31,90 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover mb-0 align-middle">
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Job Title</th>
                                         <th>Company</th>
                                         <th>Location</th>
-                                        <th>Type</th>
+                                        <th>Type/Model</th>
+                                        <th>Tags</th>
                                         <th>Posted Date</th>
-                                        <th>Actions</th>
+                                        <th style="min-width: 180px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for job in jobs %}
                                         <tr>
                                             <td>
-                                                <div class="fw-bold">{{ job.title }}</div>
-                                                {% if job.salary_range %}
-                                                    <small class="text-success">{{ job.salary_range }}</small>
+                                                <div class="fw-bold">{{ job.title|default('N/A') }}</div>
+                                                {% if job.salary_range and job.salary_range|string|lower not in ['not specified', 'not found', 'n/a', '', 'null'] %}
+                                                    <small class="text-success d-block">{{ job.salary_range }}</small>
+                                                {% elif job.salary_range and (job.salary_range|string).strip() != '' and (job.salary_range|string).strip()|lower != 'null' %}
+                                                     <small class="text-muted d-block">{{ job.salary_range }}</small>
                                                 {% endif %}
                                             </td>
-                                            <td>{{ job.company }}</td>
+                                            <td>{{ job.company|default('N/A') }}</td>
                                             <td>
-                                                <i class="fas fa-map-marker-alt me-1 text-muted"></i>
-                                                {{ job.location }}
+                                                {% if job.location and job.location|string|lower not in ['not specified', 'not found', 'n/a', '', 'null'] %}
+                                                    <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                                                    {{ job.location }}
+                                                {% else %}
+                                                    <span class="text-muted">Not specified</span>
+                                                {% endif %}
                                             </td>
                                             <td>
-                                                {% if job.job_type %}
+                                                {% if job.job_type and job.job_type|string|lower not in ['not specified', 'not found', 'n/a', '', 'null'] %}
                                                     <span class="badge bg-secondary">{{ job.job_type }}</span>
                                                 {% else %}
                                                     <span class="text-muted">Not specified</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <small>{{ job.created_at.strftime('%m/%d/%Y') }}</small>
-                                                {% if job.posted_by_name %}
+                                                {% if job.job_tags %}
+                                                    {% set tags_list = job.job_tags.split(',') %}
+                                                    {% for tag in tags_list[:2] %} {# Show first 2 tags #}
+                                                        <span class="badge bg-info text-dark me-1 mb-1 fw-normal">{{ tag.strip() }}</span>
+                                                    {% endfor %}
+                                                    {% if tags_list|length > 2 %}
+                                                        <span class="badge bg-light text-dark fw-normal">+{{ tags_list|length - 2 }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted small">No tags</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if job.created_at %}
+                                                    <small>{{ job.created_at.strftime('%m/%d/%Y') }}</small>
+                                                {% else %}
+                                                    <small class="text-muted">Date N/A</small>
+                                                {% endif %}
+                                                {% if job.posted_by_name %} {# Make sure posted_by_name is passed for Job objects #}
                                                     <br><small class="text-muted">by {{ job.posted_by_name }}</small>
                                                 {% endif %}
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <!-- View Details -->
                                                     <button type="button" class="btn btn-outline-info btn-sm" 
+                                                            title="View Details"
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#jobModal{{ job.id }}">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                    
-                                                    <!-- Edit Job -->
                                                     <a href="{{ url_for('admin_routes.edit_job', job_id=job.id) }}" 
-                                                       class="btn btn-outline-primary btn-sm">
+                                                       class="btn btn-outline-primary btn-sm" title="Edit Job">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    
                                                     {% if job.linkedin_url %}
-                                                        <!-- LinkedIn Link -->
                                                         <a href="{{ job.linkedin_url }}" target="_blank" 
-                                                           class="btn btn-outline-secondary btn-sm">
+                                                           class="btn btn-outline-secondary btn-sm" title="View on LinkedIn">
                                                             <i class="fab fa-linkedin"></i>
                                                         </a>
                                                     {% endif %}
-                                                    
-                                                    <!-- Delete Job -->
-                                                    <button type="button" class="btn btn-outline-danger btn-sm" 
-                                                            onclick="confirmDelete('{{ job.id }}', '{{ job.title }}')">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm js-delete-job-btn" 
+                                                            title="Delete Job"
+                                                            data-job-id="{{ job.id }}"
+                                                            data-job-title="{{ (job.title or 'this job')|tojson|safe }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -111,66 +131,66 @@
         
         <!-- Job Detail Modals -->
         {% for job in jobs %}
-            <div class="modal fade" id="jobModal{{ job.id }}" tabindex="-1">
-                <div class="modal-dialog modal-lg">
+            <div class="modal fade" id="jobModal{{ job.id }}" tabindex="-1" aria-labelledby="jobModalLabel{{ job.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">{{ job.title }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <h5 class="modal-title" id="jobModalLabel{{ job.id }}">{{ job.title|default('Job Details') }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="row mb-3">
+                                <div class="col-md-6"><strong>Company:</strong> {{ job.company|default('N/A') }}</div>
                                 <div class="col-md-6">
-                                    <strong>Company:</strong> {{ job.company }}
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Location:</strong> {{ job.location }}
+                                    <strong>Location:</strong> 
+                                    {% if job.location and job.location|string|lower not in ['not specified', 'not found', 'n/a', '', 'null'] %}{{ job.location }}{% else %}N/A{% endif %}
                                 </div>
                             </div>
-                            
                             <div class="row mb-3">
-                                {% if job.job_type %}
-                                    <div class="col-md-6">
-                                        <strong>Type:</strong> {{ job.job_type }}
-                                    </div>
-                                {% endif %}
-                                {% if job.salary_range %}
-                                    <div class="col-md-6">
-                                        <strong>Salary:</strong> {{ job.salary_range }}
-                                    </div>
-                                {% endif %}
+                                <div class="col-md-6">
+                                    <strong>Type/Model:</strong> 
+                                    {% if job.job_type and job.job_type|string|lower not in ['not specified', 'not found', 'n/a', '', 'null'] %}{{ job.job_type }}{% else %}N/A{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Salary:</strong> 
+                                    {% if job.salary_range and job.salary_range|string|lower not in ['not specified', 'not found', 'n/a', '', 'null'] %}{{ job.salary_range }}{% elif job.salary_range and (job.salary_range|string).strip() != '' and (job.salary_range|string).strip()|lower != 'null' %}{{ job.salary_range }}{% else %}N/A{% endif %}
+                                </div>
                             </div>
+
+                            {% if job.job_tags %}
+                            <div class="mb-3">
+                                <strong>Job Tags/Functions:</strong>
+                                <div class="mt-1">
+                                    {% for tag in job.job_tags.split(',') %}
+                                        <span class="badge bg-primary me-1 mb-1 fw-normal">{{ tag.strip() }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
                             
                             <div class="mb-3">
                                 <strong>Description:</strong>
-                                <div class="mt-2 p-3 bg-secondary rounded">
-                                    {{ job.description|replace('\n', '<br>')|safe }}
+                                <div class="mt-1 p-3 bg-light border rounded" style="max-height: 200px; overflow-y: auto;">
+                                    {% if job.description and (job.description|string).strip() != '' %}{{ job.description|replace('\n', '<br>')|safe }}{% else %}<p class="text-muted">No description.</p>{% endif %}
                                 </div>
                             </div>
-                            
                             <div class="mb-3">
                                 <strong>Requirements:</strong>
-                                <div class="mt-2 p-3 bg-secondary rounded">
-                                    {{ job.requirements|replace('\n', '<br>')|safe }}
+                                <div class="mt-1 p-3 bg-light border rounded" style="max-height: 200px; overflow-y: auto;">
+                                    {% if job.requirements and (job.requirements|string).strip() != '' %}{{ job.requirements|replace('\n', '<br>')|safe }}{% else %}<p class="text-muted">No requirements.</p>{% endif %}
                                 </div>
                             </div>
                             
                             <div class="text-muted small">
-                                Posted on {{ job.created_at.strftime('%B %d, %Y at %I:%M %p') }}
-                                {% if job.posted_by_name %}
-                                    by {{ job.posted_by_name }}
-                                {% endif %}
+                                {% if job.created_at %}Posted on {{ job.created_at.strftime('%B %d, %Y at %I:%M %p') }}{% endif %}
+                                {% if job.posted_by_name %} by {{ job.posted_by_name }}{% endif %}
                             </div>
                         </div>
                         <div class="modal-footer">
                             {% if job.linkedin_url %}
-                                <a href="{{ job.linkedin_url }}" target="_blank" class="btn btn-outline-primary">
-                                    <i class="fab fa-linkedin me-1"></i>View on LinkedIn
-                                </a>
+                                <a href="{{ job.linkedin_url }}" target="_blank" class="btn btn-outline-primary"><i class="fab fa-linkedin me-1"></i>LinkedIn</a>
                             {% endif %}
-                            <a href="{{ url_for('admin_routes.edit_job', job_id=job.id) }}" class="btn btn-primary">
-                                <i class="fas fa-edit me-1"></i>Edit Job
-                            </a>
+                            <a href="{{ url_for('admin_routes.edit_job', job_id=job.id) }}" class="btn btn-primary"><i class="fas fa-edit me-1"></i>Edit</a>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
@@ -179,14 +199,11 @@
         {% endfor %}
         
     {% else %}
-        <!-- No Jobs State -->
         <div class="row">
             <div class="col-12 text-center py-5">
-                <i class="fas fa-briefcase text-muted" style="font-size: 5rem;"></i>
+                <div class="display-1 text-muted mb-4"><i class="fas fa-briefcase"></i></div>
                 <h3 class="mt-4 mb-3">No Jobs Posted Yet</h3>
-                <p class="text-muted mb-4">
-                    Start by adding your first job posting using LinkedIn URL extraction.
-                </p>
+                <p class="text-muted mb-4">Start by adding your first job posting.</p>
                 <a href="{{ url_for('admin_routes.add_job') }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-plus me-2"></i>Add First Job
                 </a>
@@ -196,32 +213,57 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete the job posting "<span id="jobTitle"></span>"?</p>
-                <p class="text-muted small">This action cannot be undone.</p>
+                <p>Are you sure you want to delete the job posting "<strong id="jobTitleToDelete"></strong>"?</p>
+                <p class="text-danger small">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="deleteLink" class="btn btn-danger">
-                    <i class="fas fa-trash me-1"></i>Delete Job
-                </a>
+                <a href="#" id="confirmDeleteLink" class="btn btn-danger"><i class="fas fa-trash me-1"></i>Delete Job</a>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+{{ super() }}
 <script>
-function confirmDelete(jobId, jobTitle) {
-    document.getElementById('jobTitle').textContent = jobTitle;
-    document.getElementById('deleteLink').href = "{{ url_for('admin_routes.delete_job_route', job_id='') }}" + jobId;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.js-delete-job-btn');
+    deleteButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const jobId = this.dataset.jobId;
+            let displayTitle = "this job"; // Default
+            try {
+                // dataset.jobTitle should be a JSON string like "\"My Job\""
+                let parsedTitle = JSON.parse(this.dataset.jobTitle);
+                if (parsedTitle && typeof parsedTitle === 'string' && parsedTitle.trim() !== '') {
+                    displayTitle = parsedTitle;
+                }
+            } catch (e) {
+                console.warn("Could not parse jobTitle for delete confirmation:", this.dataset.jobTitle, e);
+                // Fallback to using the attribute value directly if it's not a valid JSON string
+                // but still might be a usable string.
+                if (this.dataset.jobTitle && this.dataset.jobTitle.trim() !== '' && this.dataset.jobTitle.toLowerCase() !== 'null') {
+                    displayTitle = this.dataset.jobTitle;
+                }
+            }
+
+            document.getElementById('jobTitleToDelete').textContent = displayTitle; 
+            document.getElementById('confirmDeleteLink').href = "{{ url_for('admin_routes.delete_job_route', job_id=0) }}".slice(0, -1) + jobId;
+            
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        });
+    });
+});
 </script>
 {% endblock %}

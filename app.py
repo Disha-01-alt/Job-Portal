@@ -3,7 +3,8 @@ import logging
 from flask import Flask
 from flask_login import LoginManager
 from werkzeug.middleware.proxy_fix import ProxyFix
-
+from dotenv import load_dotenv
+load_dotenv()  # Automatically loads the .env file
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -73,3 +74,6 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('base.html', content='<div class="container"><h1>Internal Server Error</h1><p>An unexpected error occurred. Please try again later.</p></div>'), 500
+
+print("CLIENT_ID from .env:", os.getenv("GOOGLE_OAUTH_CLIENT_ID"))
+
