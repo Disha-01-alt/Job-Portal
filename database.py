@@ -432,6 +432,45 @@ def get_all_candidates():
             }
             candidates.append(candidate)
         return candidates
+# jobportal/database.py
+# ... (other imports and functions like get_db, init_db, get_user_by_email, etc.) ...
+
+def update_user_details(user_id, full_name=None, phone=None, linkedin=None, github=None):
+    """Updates specific details for a user in the users table."""
+    with get_db() as conn:
+        cur = conn.cursor()
+        
+        fields_to_update = {}
+        # Only add to payload if the argument was actually provided (even if it's an empty string to clear a field)
+        if full_name is not None: # Assumes empty string means clear, None means don't touch
+            fields_to_update['full_name'] = full_name
+        if phone is not None:
+            fields_to_update['phone'] = phone # 'phone' is the column name for WhatsApp number
+        if linkedin is not None:
+            fields_to_update['linkedin'] = linkedin
+        if github is not None:
+            fields_to_update['github'] = github
+
+        if not fields_to_update:
+            logging.info(f"No user details provided to update for user_id: {user_id}")
+            return False 
+
+        set_clauses = [f"{key} = %s" for key in fields_to_update.keys()]
+        values = list(fields_to_update.values())
+        values.append(user_id) # For the WHERE clause
+
+        query = f"UPDATE users SET {', '.join(set_clauses)} WHERE id = %s"
+        
+        logging.debug(f"Executing SQL for user update: {query} with values: {values}")
+        try:
+            cur.execute(query, tuple(values))
+            conn.commit()
+            logging.info(f"Successfully updated user details for user_id: {user_id}")
+            return cur.rowcount > 0 
+        except Exception as e:
+            logging.error(f"Error updating user details for user_id {user_id}: {e}")
+            conn.rollback() # Rollback on error
+            raise # Re-raise the exception to be caught by the route handler
 def update_candidate_rating_feedback(user_id, rating, feedback, admin_tags=None, is_certified=None): # Added new params
     """Update candidate rating, feedback, admin tags, and certification status"""
     with get_db() as conn:
