@@ -141,7 +141,7 @@
                     <div class="card-body">
                         <!-- CV -->
                         <div class="mb-3">
-                            <label for="cv" class="form-label">CV/Resume * <small>(PDF, DOC, DOCX)</small></label>
+                            <label for="cv" class="form-label">CV/Resume * <small>(PDF ONLY)</small></label>
                             {% if profile and profile.cv_filename %}
                                 <div class="mb-1 small d-flex justify-content-between align-items-center">
                                     <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.cv_filename|truncate(25, True) }}</span>
@@ -153,58 +153,58 @@
                                     </div>
                                 </div>
                             {% endif %}
-                            <input type="file" class="form-control form-control-sm mt-1" id="cv" name="cv" accept=".pdf,.doc,.docx" {{ 'required' if not (profile and profile.cv_filename) else '' }}>
+                            <input type="file" class="form-control form-control-sm mt-1" id="cv" name="cv" accept=".pdf" {{ 'required' if not (profile and profile.cv_filename) else '' }}>
                         </div>
                         
                         <!-- ID Card -->
                         <div class="mb-3">
-                            <label for="id_card" class="form-label">ID Card * <small>(PDF, JPG, PNG)</small></label>
+                            <label for="id_card" class="form-label">ID Card * <small>(PDF ONLY)</small></label>
                             {% if profile and profile.id_card_filename %}
                                 <div class="mb-1 small d-flex justify-content-between align-items-center">
                                     <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.id_card_filename|truncate(25, True) }}</span>
                                     <div class="btn-group btn-group-sm">
-                                        {% if profile.id_card_filename.lower().endswith(('.pdf', '.png', '.jpg', '.jpeg')) %}
+                                        {% if profile.id_card_filename.lower().endswith(('.pdf')) %}
                                         <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='id_card', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
                                         {% endif %}
                                         <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='id_card', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
                                     </div>
                                 </div>
                             {% endif %}
-                            <input type="file" class="form-control form-control-sm mt-1" id="id_card" name="id_card" accept=".pdf,.jpg,.jpeg,.png" {{ 'required' if not (profile and profile.id_card_filename) else '' }}>
+                            <input type="file" class="form-control form-control-sm mt-1" id="id_card" name="id_card" accept=".pdf" {{ 'required' if not (profile and profile.id_card_filename) else '' }}>
                         </div>
                         
                         <!-- Marksheet -->
                         <div class="mb-3">
-                            <label for="marksheet" class="form-label">12th Marksheet * <small>(PDF, JPG, PNG)</small></label>
+                            <label for="marksheet" class="form-label">12th Marksheet * <small>(PDF ONLY)</small></label>
                             {% if profile and profile.marksheet_filename %}
                                <div class="mb-1 small d-flex justify-content-between align-items-center">
                                     <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.marksheet_filename|truncate(25, True) }}</span>
                                     <div class="btn-group btn-group-sm">
-                                        {% if profile.marksheet_filename.lower().endswith(('.pdf', '.png', '.jpg', '.jpeg')) %}
+                                        {% if profile.marksheet_filename.lower().endswith(('.pdf')) %}
                                         <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='marksheet', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
                                         {% endif %}
                                         <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='marksheet', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
                                     </div>
                                 </div>
                             {% endif %}
-                            <input type="file" class="form-control form-control-sm mt-1" id="marksheet" name="marksheet" accept=".pdf,.jpg,.jpeg,.png" {{ 'required' if not (profile and profile.marksheet_filename) else '' }}>
+                            <input type="file" class="form-control form-control-sm mt-1" id="marksheet" name="marksheet" accept=".pdf" {{ 'required' if not (profile and profile.marksheet_filename) else '' }}>
                         </div>
 
                         <!-- EWS Certificate -->
                         <div class="mb-3">
-                            <label for="ews_certificate" class="form-label">EWS Certificate (Optional) <small>(PDF, JPG, PNG)</small></label>
+                            <label for="ews_certificate" class="form-label">EWS Certificate (Optional) <small>(PDF ONLY)</small></label>
                             {% if profile and profile.ews_certificate_filename %}
                                 <div class="mb-1 small d-flex justify-content-between align-items-center">
                                     <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.ews_certificate_filename|truncate(25, True) }}</span>
                                     <div class="btn-group btn-group-sm">
-                                        {% if profile.ews_certificate_filename.lower().endswith(('.pdf', '.png', '.jpg', '.jpeg')) %}
+                                        {% if profile.ews_certificate_filename.lower().endswith(('.pdf')) %}
                                         <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='ews_certificate', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
                                         {% endif %}
                                         <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='ews_certificate', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
                                     </div>
                                 </div>
                             {% endif %}
-                            <input type="file" class="form-control form-control-sm mt-1" id="ews_certificate" name="ews_certificate" accept=".pdf,.jpg,.jpeg,.png">
+                            <input type="file" class="form-control form-control-sm mt-1" id="ews_certificate" name="ews_certificate" accept=".pdf">
                         </div>
                         <small class="text-muted d-block">Ensure all mandatory (*) documents are uploaded. Click <i class="fas fa-eye"></i> to view (PDF/Images) or <i class="fas fa-download"></i> to download.</small>
                     </div>
