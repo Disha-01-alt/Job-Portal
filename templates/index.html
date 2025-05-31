@@ -19,6 +19,11 @@
                             <i class="fas fa-briefcase me-2"></i>Browse Jobs
                         </a>
                     </div>
+                {% else %}
+                     {# If user is authenticated, maybe a link to their dashboard or jobs page #}
+                     <a href="{{ url_for('candidate_routes.jobs') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-search me-2"></i>Explore Open Roles
+                    </a>
                 {% endif %}
             </div>
             <div class="col-lg-6 text-center">
@@ -41,19 +46,18 @@
         <!-- Browse Jobs (Public) -->
         <div class="col-lg-4">
             <div class="card h-100 text-center">
-                <div class="card-body">
+                <div class="card-body d-flex flex-column"> {# Added d-flex #}
                     <div class="mb-4">
                         <i class="fas fa-search text-success" style="font-size: 3rem;"></i>
                     </div>
                     <h4 class="card-title">Browse Jobs</h4>
-                    <ul class="list-unstyled text-start">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>View all available opportunities</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Search by location and company</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>No registration required</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Filter by job type and salary</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Get job details instantly</li>
+                    <ul class="list-unstyled text-start small"> {# Made text smaller #}
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>View all available opportunities</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Filter by location, type, etc.</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>No registration required to browse</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Get job details instantly</li>
                     </ul>
-                    <a href="{{ url_for('candidate_routes.jobs') }}" class="btn btn-success">Browse Jobs Now</a>
+                    <a href="{{ url_for('candidate_routes.jobs') }}" class="btn btn-success mt-auto">Browse Jobs Now</a> {# mt-auto to push to bottom #}
                 </div>
             </div>
         </div>
@@ -61,20 +65,24 @@
         <!-- For Candidates -->
         <div class="col-lg-4">
             <div class="card h-100 text-center">
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
                     <div class="mb-4">
                         <i class="fas fa-user-graduate text-primary" style="font-size: 3rem;"></i>
                     </div>
                     <h4 class="card-title">For Candidates</h4>
-                    <ul class="list-unstyled text-start">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Create your professional profile</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Upload CV, ID card, and marksheets</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Apply to job opportunities</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Receive feedback from employers</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Get discovered by recruiters</li>
+                    <ul class="list-unstyled text-start small">
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Create your professional profile</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Upload CV & necessary documents</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Get discovered by recruiters</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Apply directly via LinkedIn links</li>
                     </ul>
                     {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary">Join as Candidate</a>
+                        {# CHANGED HREF HERE #}
+                        <a href="{{ url_for('auth_routes.register') }}" class="btn btn-primary mt-auto">Join as Candidate</a>
+                    {% else %}
+                        {% if current_user.role == 'candidate' or current_user.role == 'pending_setup' %}
+                            <a href="{{ url_for('candidate_routes.profile') }}" class="btn btn-primary mt-auto">Go to My Profile</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -83,20 +91,24 @@
         <!-- For Companies -->
         <div class="col-lg-4">
             <div class="card h-100 text-center">
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
                     <div class="mb-4">
                         <i class="fas fa-building text-info" style="font-size: 3rem;"></i>
                     </div>
                     <h4 class="card-title">For Companies</h4>
-                    <ul class="list-unstyled text-start">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Search qualified candidates</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Filter by skills and experience</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>View detailed candidate profiles</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Download CVs and documents</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Find the perfect fit for your team</li>
+                    <ul class="list-unstyled text-start small">
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Search qualified candidates</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Filter by skills and experience</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>View detailed candidate profiles</li>
+                        <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Download CVs and documents</li>
                     </ul>
                     {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-info">Join as Company</a>
+                        {# CHANGED HREF HERE #}
+                        <a href="{{ url_for('auth_routes.register') }}" class="btn btn-info mt-auto">Join as Company</a>
+                    {% else %}
+                         {% if current_user.role == 'company' %}
+                            <a href="{{ url_for('company_routes.dashboard') }}" class="btn btn-info mt-auto">Go to Company Dashboard</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -105,29 +117,29 @@
 </div>
 
 <!-- Stats Section -->
-<div class="bg-secondary py-5">
+<div class="bg-light py-5"> {# Changed to bg-light for contrast if dark theme is default #}
     <div class="container">
         <div class="row text-center">
             <div class="col-md-4 mb-4">
-                <div class="display-4 fw-bold text-primary">
+                <div class="display-4 fw-bold text-primary mb-2">
                     <i class="fas fa-users"></i>
                 </div>
-                <h4>Talented Candidates</h4>
-                <p class="text-muted">Connect with skilled professionals ready to contribute to your organization</p>
+                <h5>Talented Candidates</h5>
+                <p class="text-muted small">Connect with skilled professionals ready to contribute.</p>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="display-4 fw-bold text-info">
+                <div class="display-4 fw-bold text-info mb-2">
                     <i class="fas fa-briefcase"></i>
                 </div>
-                <h4>Quality Job Opportunities</h4>
-                <p class="text-muted">AI-powered job extraction ensures accurate and detailed job postings</p>
+                <h5>Quality Job Opportunities</h5>
+                <p class="text-muted small">Accurate and detailed job postings via AI extraction.</p>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="display-4 fw-bold text-success">
+                <div class="display-4 fw-bold text-success mb-2">
                     <i class="fas fa-handshake"></i>
                 </div>
-                <h4>Perfect Matches</h4>
-                <p class="text-muted">Advanced filtering and rating system for optimal candidate-employer matching</p>
+                <h5>Perfect Matches</h5>
+                <p class="text-muted small">Advanced filtering for optimal candidate matching.</p>
             </div>
         </div>
     </div>
@@ -138,14 +150,14 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-12 text-center">
-            <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
-            <p class="lead mb-4">Join thousands of professionals who have found their perfect career match</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{{ url_for('auth_routes.register') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-rocket me-2"></i>Start Your Journey
+            <h2 class="display-5 fw-bold mb-3">Ready to Get Started?</h2>
+            <p class="lead mb-4">Register today or sign in with Google to find your next opportunity.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="{{ url_for('auth_routes.register') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
                 </a>
-                <a href="{{ url_for('auth_routes.login') }}" class="btn btn-outline-secondary btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i>Already Have Account?
+                <a href="{{ url_for('google_auth.login') }}" class="btn btn-outline-light btn-lg px-4"> {# Changed to outline-light for better contrast if bg is dark #}
+                    <i class="fab fa-google me-2"></i>Sign in with Google
                 </a>
             </div>
         </div>
