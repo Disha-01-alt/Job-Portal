@@ -7,12 +7,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    {% block head_extra %}{% endblock %} {# Optional: For page-specific head elements #}
+    {% block head_extra %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100"> {# For sticky footer #}
+<body class="d-flex flex-column min-vh-100">
 
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"> {# Consider fixed-top or sticky-top #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        {# ... Your existing navbar code ... #}
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
                 <i class="fas fa-briefcase me-2"></i>Job Portal
@@ -23,13 +24,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     {% if current_user.is_authenticated %}
-                        {# Common link for all authenticated users to Browse Jobs #}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'candidate_routes.jobs' %}active{% endif %}" href="{{ url_for('candidate_routes.jobs') }}">
                                 <i class="fas fa-search me-1"></i>Browse Jobs
                             </a>
                         </li>
-
                         {% if current_user.role == 'candidate' %}
                             <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'candidate_routes.dashboard' %}active{% endif %}" href="{{ url_for('candidate_routes.dashboard') }}">
@@ -42,41 +41,17 @@
                                 </a>
                             </li>
                         {% elif current_user.role == 'admin' %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'admin_routes.dashboard' %}active{% endif %}" href="{{ url_for('admin_routes.dashboard') }}">
-                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'admin_routes.add_job' %}active{% endif %}" href="{{ url_for('admin_routes.add_job') }}">
-                                    <i class="fas fa-plus me-1"></i>Add Job
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'admin_routes.manage_jobs' %}active{% endif %}" href="{{ url_for('admin_routes.manage_jobs') }}">
-                                    <i class="fas fa-cog me-1"></i>Manage Jobs
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'admin_routes.review_candidates' %}active{% endif %}" href="{{ url_for('admin_routes.review_candidates') }}">
-                                    <i class="fas fa-users me-1"></i>Review Candidates
-                                </a>
-                            </li>
+                            {# Admin links #}
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_routes.dashboard' %}active{% endif %}" href="{{ url_for('admin_routes.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_routes.add_job' %}active{% endif %}" href="{{ url_for('admin_routes.add_job') }}"><i class="fas fa-plus me-1"></i>Add Job</a></li>
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_routes.manage_jobs' %}active{% endif %}" href="{{ url_for('admin_routes.manage_jobs') }}"><i class="fas fa-cog me-1"></i>Manage Jobs</a></li>
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'admin_routes.review_candidates' %}active{% endif %}" href="{{ url_for('admin_routes.review_candidates') }}"><i class="fas fa-users me-1"></i>Review Candidates</a></li>
                         {% elif current_user.role == 'company' %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'company_routes.dashboard' %}active{% endif %}" href="{{ url_for('company_routes.dashboard') }}">
-                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'company_routes.search_candidates_route' %}active{% endif %}" href="{{ url_for('company_routes.search_candidates_route') }}">
-                                    <i class="fas fa-search me-1"></i>Search Candidates
-                                </a>
-                            </li>
+                            {# Company links #}
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'company_routes.dashboard' %}active{% endif %}" href="{{ url_for('company_routes.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'company_routes.search_candidates_route' %}active{% endif %}" href="{{ url_for('company_routes.search_candidates_route') }}"><i class="fas fa-search me-1"></i>Search Candidates</a></li>
                         {% endif %}
-                    {% else %} {# Not authenticated #}
-                        {# "Browse Jobs" link for non-authenticated users, if desired #}
-                        {# If "Browse Jobs" is login-only, this should be removed or point to login #}
+                    {% else %} 
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'candidate_routes.jobs' %}active{% endif %}" href="{{ url_for('candidate_routes.jobs') }}">
                                 <i class="fas fa-briefcase me-1"></i>Browse Jobs
@@ -84,8 +59,8 @@
                         </li>
                     {% endif %}
                 </ul>
-                
                 <ul class="navbar-nav">
+                    {# User authentication links #}
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -95,11 +70,7 @@
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><span class="dropdown-item-text">Role: {{ current_user.role.replace('_',' ').title() }}</span></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('google_auth.logout') }}">
-                                        <i class="fas fa-sign-out-alt me-1"></i>Logout
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{{ url_for('google_auth.logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a></li>
                             </ul>
                         </li>
                     {% else %}
@@ -114,8 +85,7 @@
         </div>
     </nav>
 
-    {# Add some top margin/padding to the main content area if using fixed-top navbar #}
-    <div style="padding-top: 56px;"> {# Adjust 56px based on your navbar height #}
+    <div style="padding-top: 70px;"> {# Adjusted padding for fixed-top navbar and potential alert #}
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -131,28 +101,31 @@
             {% endif %}
         {% endwith %}
 
-        <!-- "Complete Registration" Prompt -->
+        <!-- "Complete Registration" Prompt - UPDATED SECTION -->
         {% if current_user.is_authenticated and (session.get('needs_registration_completion') or current_user.role == 'pending_setup') %}
-        <div class="container mt-3" id="complete-registration-prompt">
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <strong>Welcome!</strong> Please 
-                <a href="{{ url_for('auth_routes.complete_registration') }}" class="alert-link">complete your registration</a> 
-                to select your role and access all features.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="container mt-3 mb-3" id="complete-registration-prompt"> {# Added mb-3 #}
+            <div class="alert alert-info p-4 text-center"> {# Increased padding and centered text #}
+                <h4 class="alert-heading"><i class="fas fa-user-plus me-2"></i>Welcome, {{ current_user.full_name or current_user.email }}!</h4>
+                <p class="lead mb-3">To unlock all features and tailor your experience, please complete your registration.</p>
+                <hr>
+                <p class="mb-0">
+                    <a href="{{ url_for('auth_routes.complete_registration') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-check-circle me-2"></i>Complete Your Registration Now
+                    </a>
+                </p>
+                <button type="button" class="btn-close position-absolute top-0 end-0 p-3" data-bs-dismiss="alert" aria-label="Close"></button> {# Manual close button if needed #}
             </div>
         </div>
         {% endif %}
+        <!-- END OF UPDATED SECTION -->
 
-        <!-- Main Content Block -->
-        <main class="flex-shrink-0 py-3"> {# py-3 for some vertical padding #}
-            {% block content %}{% endblock %} {# THIS IS THE SINGLE CONTENT BLOCK #}
+        <main class="flex-shrink-0 py-3">
+            {% block content %}{% endblock %}
         </main>
-    </div> {# End of padding-top div #}
+    </div>
 
-    <!-- Footer -->
     <footer class="footer mt-auto py-3 bg-dark text-light">
         <div class="container text-center">
-            {# For dynamic year, ensure G or datetime is available in context or use JS #}
             <p class="mb-0">© <span id="current-year">2024</span> Job Portal. All rights reserved.</p>
         </div>
     </footer>
@@ -160,7 +133,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
-        // Simple JS for dynamic year in footer if Jinja's 'now' filter isn't set up globally
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
     {% block scripts %}{% endblock %}
