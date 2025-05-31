@@ -150,9 +150,8 @@ def profile():
                 if original_filename.lower().endswith('.pdf'):
                     any_new_file_processed_successfully = True
                     try:
-                        public_id_base = os.path.splitext(original_filename)[0]
-                        public_id = f"{current_user.id}_{form_field_name}_{public_id_base[:50]}" 
-
+                        public_id_base = os.path.splitext(original_filename)[0] # Name without original extension
+                        public_id_with_ext = f"{current_user.id}_{form_field_name}_{public_id_base[:40]}.pdf" # Explicitly add .pdf
                         logging.info(f"Uploading {config['label']} to Cloudinary. Public ID: {public_id}, Folder: {config['folder']}")
                         
                         upload_result = cloudinary.uploader.upload(
