@@ -117,7 +117,7 @@
 </div>
 
 <!-- Stats Section -->
-<div class="bg-light py-5"> {# Changed to bg-light for contrast if dark theme is default #}
+<div class="bg-secondary py-5"> {# Changed to bg-light for contrast if dark theme is default #}
     <div class="container">
         <div class="row text-center">
             <div class="col-md-4 mb-4">
@@ -156,7 +156,7 @@
                 <a href="{{ url_for('auth_routes.register') }}" class="btn btn-primary btn-lg px-4 gap-3">
                     <i class="fas fa-user-plus me-2"></i>Create Account
                 </a>
-                <a href="{{ url_for('google_auth.login') }}" class="btn btn-outline-light btn-lg px-4"> {# Changed to outline-light for better contrast if bg is dark #}
+                <a href="{{ url_for('google_auth.login') }}" class="bg-secondary py-5"> {# Changed to outline-light for better contrast if bg is dark #}
                     <i class="fab fa-google me-2"></i>Sign in with Google
                 </a>
             </div>
