@@ -1,136 +1,74 @@
 {% extends "base.html" %}
 
-{% block title %}Register - Job Portal{% endblock %}
+{% block title %}Complete Your Registration - Job Portal{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
+        <div class="col-md-6">
             <div class="card">
-                <div class="card-body p-4">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-check me-2 text-primary"></i>Complete Your Registration
+                    </h4>
+                </div>
+                <div class="card-body">
                     <div class="text-center mb-4">
-                        <i class="fas fa-user-plus text-primary" style="font-size: 3rem;"></i>
-                        <h2 class="mt-3 mb-0">Create Account</h2>
-                        <p class="text-muted">Join our job portal today</p>
+                        {# Use current_user for name if available, else session data as fallback #}
+                        <p class="text-muted">Welcome <strong>{{ current_user_name if current_user_name else (session.get('google_name') or 'New User') }}</strong>!</p>
+                        <p class="small text-muted">{{ current_user_email if current_user_email else session.get('google_email') }}</p>
+                        <p>Please select your role and confirm your details to activate your account.</p>
                     </div>
                     
                     <form method="POST">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="full_name" class="form-label">Full Name *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="full_name" name="full_name" required>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email Address *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-envelope"></i>
-                                    </span>
-                                    <input type="email" class="form-control" id="email" name="email" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">Password *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    <input type="password" class="form-control" id="password" name="password" required minlength="6">
-                                </div>
-                                <small class="text-muted">Minimum 6 characters</small>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="confirm_password" class="form-label">Confirm Password *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">I am a <span class="text-danger">*</span></label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Select your role...</option>
+                                <option value="candidate" {{ 'selected' if request.form.role == 'candidate' else '' }}>Job Seeker / Student</option>
+                                <option value="company" {{ 'selected' if request.form.role == 'company' else '' }}>Company / HR Representative</option>
+                            </select>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="role" class="form-label">Account Type *</label>
-                            <select class="form-select" id="role" name="role" required>
-                                <option value="">Select account type</option>
-                                <option value="candidate">Candidate/Student</option>
-                                <option value="company">Company/HR Representative</option>
-                            </select>
-                            <small class="text-muted">Company accounts require admin approval</small>
+                            <label for="full_name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   value="{{ request.form.full_name or (current_user_name if current_user_name else (session.get('google_name') or '')) }}" 
+                                   placeholder="Enter your full name" required>
                         </div>
                         
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">Phone Number</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-phone"></i>
-                                    </span>
-                                    <input type="tel" class="form-control" id="phone" name="phone">
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="linkedin" class="form-label">LinkedIn Profile</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fab fa-linkedin"></i>
-                                    </span>
-                                    <input type="url" class="form-control" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/...">
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number (Optional)</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ request.form.phone or '' }}" placeholder="Enter your phone number">
                         </div>
                         
-                        <div class="mb-4">
+                        <div class="mb-3">
+                            <label for="linkedin" class="form-label">LinkedIn Profile (Optional)</label>
+                            <input type="url" class="form-control" id="linkedin" name="linkedin" 
+                                   value="{{ request.form.linkedin or '' }}" placeholder="https://linkedin.com/in/yourprofile">
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="github" class="form-label">GitHub Profile (Optional)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fab fa-github"></i>
-                                </span>
-                                <input type="url" class="form-control" id="github" name="github" placeholder="https://github.com/...">
-                            </div>
+                            <input type="url" class="form-control" id="github" name="github" 
+                                   value="{{ request.form.github or '' }}" placeholder="https://github.com/yourusername">
                         </div>
                         
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-user-plus me-2"></i>Create Account
-                        </button>
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Company accounts</strong> require admin approval after registration.
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check-circle me-2"></i>Complete Registration
+                            </button>
+                        </div>
                     </form>
-                    
-                    <div class="text-center">
-                        <p class="mb-0">Already have an account? 
-                            <a href="{{ url_for('auth_routes.login') }}" class="text-decoration-none">
-                                Sign in here
-                            </a>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-// Password confirmation validation
-document.getElementById('confirm_password').addEventListener('input', function() {
-    const password = document.getElementById('password').value;
-    const confirmPassword = this.value;
-    
-    if (password !== confirmPassword) {
-        this.setCustomValidity('Passwords do not match');
-    } else {
-        this.setCustomValidity('');
-    }
-});
-</script>
 {% endblock %}
