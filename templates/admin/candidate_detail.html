@@ -110,13 +110,13 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label text-muted">Summary of Skills and Strengths:</label>
-                        <div class="p-3 bg-light rounded">
+                        <div class="p-3 bg-secondary rounded">
                             {% if candidate.get('summary') %}{{ candidate.get('summary')|replace('\n', '<br>')|safe }}{% else %}<span class="text-muted">Not provided</span>{% endif %}
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted">Core Interest Domains:</label>
-                        <div class="p-3 bg-light rounded">
+                        <div class="p-3 bg-secondary rounded">
                             {% if candidate.get('core_interest_domains') %}
                                 {% for interest in candidate.get('core_interest_domains', '').split(',') %}
                                     {% if interest.strip() %}
