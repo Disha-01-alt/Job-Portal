@@ -37,8 +37,37 @@
                         
                         <div class="mb-3">
                             <label for="phone" class="form-label">WhatsApp Number</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
-                                   placeholder="Enter your phone number">
+                            <input type="tel" class="form-control" id="phone" name="phone"
+       inputmode="numeric" placeholder="Enter WhatsApp number"
+       maxlength="13" required>
+
+<script>
+const phoneInput = document.getElementById('phone');
+
+// Auto-add +91 if not already present
+phoneInput.addEventListener('focus', function () {
+    if (!this.value.startsWith('+91')) {
+        this.value = '+91';
+    }
+});
+
+// Prevent deleting +91
+phoneInput.addEventListener('keydown', function (e) {
+    if (this.selectionStart <= 3 && (e.key === 'Backspace' || e.key === 'Delete')) {
+        e.preventDefault();
+    }
+});
+
+// Allow only digits after +91
+phoneInput.addEventListener('input', function () {
+    if (!this.value.startsWith('+91')) {
+        this.value = '+91';
+    }
+    // Remove non-digits after +91
+    this.value = '+91' + this.value.slice(3).replace(/\D/g, '');
+});
+</script>
+
                         </div>
                         
                         <div class="mb-3">
