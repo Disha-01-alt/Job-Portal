@@ -31,29 +31,43 @@ def login():
     # return render_template('auth/login.html') # A page with manual login form
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
-def register(): # For manual registration
+def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index')) 
-    
+        # If user is already logged in, no need to show registration.
+        # Redirect them to a sensible page.
+        flash("You are already logged in.", "info")
+        if current_user.role == 'pending_setup' or session.get('needs_registration_completion'):
+            return redirect(url_for('auth_routes.complete_registration'))
+        elif current_user.role == 'candidate':
+            return redirect(url_for('candidate_routes.dashboard'))
+        elif current_user.role == 'admin':
+            return redirect(url_for('admin_routes.dashboard'))
+        elif current_user.role == 'company':
+            return redirect(url_for('company_routes.dashboard'))
+        return redirect(url_for('index'))
+
+    # Get the pre-selected role from the query parameter for GET requests
+    pre_selected_role = request.args.get('role', None) # e.g., 'candidate' or 'company'
+
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
-        role = request.form.get('role', '')
+        role_from_form = request.form.get('role', '') # Role selected in the form
         full_name = request.form.get('full_name', '').strip()
         phone = request.form.get('phone', '').strip() or None
         linkedin = request.form.get('linkedin', '').strip() or None
         github = request.form.get('github', '').strip() or None
         
         errors = []
-        if not all([email, password, confirm_password, role, full_name]):
+        if not all([email, password, confirm_password, role_from_form, full_name]):
             errors.append('Please fill in all required fields (*).')
         if password != confirm_password:
             errors.append('Passwords do not match.')
         if len(password) < 6:
             errors.append('Password must be at least 6 characters long.')
-        if role not in ['candidate', 'company']:
-            errors.append('Invalid role selected.')
+        if role_from_form not in ['candidate', 'company']: # Validate role from form
+            errors.append('Invalid role selected in the form.')
         
         if not errors:
             existing_user = get_user_by_email(email)
@@ -63,27 +77,40 @@ def register(): # For manual registration
         if errors:
             for error in errors:
                 flash(error, 'error')
-            return render_template('auth/register.html', form_data=request.form)
+            # Pass pre_selected_role again for GET part of template if POST fails
+            return render_template('auth/register.html', form_data=request.form, pre_selected_role=role_from_form or pre_selected_role) 
         
         try:
-            user_id = create_user( # create_user in database.py hashes the password
-                email=email, password=password, role=role, full_name=full_name,
+            user_id = create_user(
+                email=email, password=password, role=role_from_form, full_name=full_name,
                 phone=phone, linkedin=linkedin, github=github
             )
-            logging.info(f"Manual registration successful for {email}, role: {role}, user_id: {user_id}")
+            logging.info(f"Manual registration successful for {email}, role: {role_from_form}, user_id: {user_id}")
             
-            if role == 'company':
-                flash('Account created! Your company account is pending admin approval.', 'info')
+            # Attempt to auto-login the user
+            newly_registered_user = get_user_by_id(user_id)
+            if newly_registered_user:
+                login_user(newly_registered_user)
+                flash('Account created and you are now logged in!', 'success')
+                if newly_registered_user.role == 'company' and not newly_registered_user.is_approved:
+                    flash('Your company account is pending admin approval.', 'info')
+                    return redirect(url_for('index')) # Or a company pending page
+                elif newly_registered_user.role == 'candidate':
+                    return redirect(url_for('candidate_routes.dashboard'))
+                # Add other role redirects if they could register as such manually
+                return redirect(url_for('index')) # Fallback
             else:
-                flash('Account created successfully! You can now log in.', 'success')
-            return redirect(url_for('google_auth.login')) # Redirect to login page after manual registration
-        
+                flash('Account created, but auto-login failed. Please try logging in.', 'warning')
+                return redirect(url_for('google_auth.login')) # Or a manual login if you have one
+            
         except Exception as e:
             logging.exception(f"Error during manual registration for {email}:")
             flash('An error occurred during registration. Please try again.', 'error')
-            return render_template('auth/register.html', form_data=request.form)
+            return render_template('auth/register.html', form_data=request.form, pre_selected_role=role_from_form or pre_selected_role)
 
-    return render_template('auth/register.html') # For GET request
+    # For GET request, pass the pre_selected_role to the template
+    return render_template('auth/register.html', pre_selected_role=pre_selected_role)
+
 
 # jobportal/routes/auth_routes.py
 # ...
