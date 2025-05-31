@@ -1,7 +1,7 @@
 # jobportal/routes/auth_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user,login_required # current_user might be used for conditional rendering
-from database import get_user_by_email, create_user, get_user_by_id # Ensure get_user_by_id is available
+from database import get_user_by_email, create_user, get_user_by_id, get_db # Ensure get_user_by_id is available
 from models import User 
 import logging
 
