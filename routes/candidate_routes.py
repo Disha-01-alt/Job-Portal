@@ -157,7 +157,7 @@ def profile():
                         upload_result = cloudinary.uploader.upload(
                             file,
                             folder=config['folder'],
-                            public_id=public_id,
+                            public_id=public_id_with_ext,
                             resource_type="raw",
                             overwrite=True 
                         )
