@@ -6,6 +6,8 @@ from database import get_candidate_profile, update_candidate_profile, get_all_jo
 import os
 import logging
 import re # For WhatsApp number validation
+import cloudinary # Import Cloudinary
+import cloudinary.uploader # Import uploader
 
 candidate_bp = Blueprint('candidate_routes', __name__)
 
@@ -104,40 +106,51 @@ def profile():
         if not parental_annual_income: form_errors.append("Parental Annual Income is required.")
         profile_update_payload['parental_annual_income'] = parental_annual_income
 
-        files_to_process = {
-            'cv': {'ext': {'pdf'}, 'folder': 'cvs', 'db_field': 'cv_filename', 'label': 'CV/Resume', 'is_required': True},
-            'id_card': {'ext': {'pdf'}, 'folder': 'id_cards', 'db_field': 'id_card_filename', 'label': 'ID Card', 'is_required': True},
-            'marksheet': {'ext': {'pdf'}, 'folder': 'marksheets', 'db_field': 'marksheet_filename', 'label': '12th Marksheet', 'is_required': True},
-            'ews_certificate': {'ext': {'pdf'}, 'folder': 'ews_certificates', 'db_field': 'ews_certificate_filename', 'label': 'EWS Certificate', 'is_required': False}
+        # --- File Uploads to Cloudinary (All PDF only) ---
+        files_to_process_cloudinary = {
+            'cv': {'folder': f'job_portal/user_{current_user.id}/cvs', 'db_field': 'cv_filename', 'label': 'CV/Resume', 'is_required': True},
+            'id_card': {'folder': f'job_portal/user_{current_user.id}/id_cards', 'db_field': 'id_card_filename', 'label': 'ID Card', 'is_required': True},
+            'marksheet': {'folder': f'job_portal/user_{current_user.id}/marksheets', 'db_field': 'marksheet_filename', 'label': '12th Marksheet', 'is_required': True},
+            'ews_certificate': {'folder': f'job_portal/user_{current_user.id}/ews_certificates', 'db_field': 'ews_certificate_filename', 'label': 'EWS Certificate', 'is_required': False}
         }
         any_new_file_processed_successfully = False
 
-        for form_field_name, config in files_to_process.items():
+        for form_field_name, config in files_to_process_cloudinary.items():
             file = request.files.get(form_field_name)
-            existing_filename = getattr(profile_db_data, config['db_field'], None) if profile_db_data else None
+            existing_file_url = getattr(profile_db_data, config['db_field'], None) if profile_db_data else None
             
-            if file and file.filename: 
-                any_new_file_processed_successfully = True
-                if allowed_file(file.filename, config['ext']):
-                    base, ext = os.path.splitext(file.filename)
-                    sane_base = "".join(c if c.isalnum() or c in ['_', '-'] else '' for c in base[:50])
-                    filename_to_save = secure_filename(f"{current_user.id}_{form_field_name}_{sane_base}{ext}")
-                    folder_path = os.path.join(current_app.config['UPLOAD_FOLDER'], config['folder'])
-                    os.makedirs(folder_path, exist_ok=True)
+            if file and file.filename:
+                original_filename = secure_filename(file.filename) # Get original name for Cloudinary public_id
+                if original_filename.lower().endswith('.pdf'):
+                    any_new_file_processed_successfully = True
                     try:
-                        file.save(os.path.join(folder_path, filename_to_save))
-                        profile_update_payload[config['db_field']] = filename_to_save # Add to payload
-                        logging.info(f"Saved {form_field_name} to {os.path.join(folder_path, filename_to_save)}")
-                    except Exception as e_save:
-                        logging.error(f"Error saving file {filename_to_save}: {e_save}")
-                        form_errors.append(f"Error saving {config['label']}.")
+                        # Use a structured public_id for better organization in Cloudinary
+                        # Example: job_portal/user_3/cvs/my_cv_v2 (Cloudinary adds .pdf automatically for raw files)
+                        public_id_base = os.path.splitext(original_filename)[0]
+                        public_id = f"{current_user.id}_{form_field_name}_{public_id_base[:50]}" # Truncate long names
+
+                        logging.info(f"Uploading {config['label']} to Cloudinary. Public ID: {public_id}, Folder: {config['folder']}")
+                        
+                        upload_result = cloudinary.uploader.upload(
+                            file,
+                            folder=config['folder'],
+                            public_id=public_id,
+                            resource_type="raw", # For PDFs and other non-image/video files
+                            overwrite=True # Overwrite if file with same public_id exists in folder
+                        )
+                        # Store the secure URL provided by Cloudinary
+                        profile_update_payload[config['db_field']] = upload_result['secure_url']
+                        logging.info(f"Uploaded {config['label']} to Cloudinary: {upload_result['secure_url']}")
+                    except Exception as e_cloudinary:
+                        logging.error(f"Cloudinary upload error for {config['label']}: {e_cloudinary}")
+                        form_errors.append(f"Error uploading {config['label']}. Please try again.")
                 else:
                     form_errors.append(f"{config['label']} must be a PDF file.")
-            elif config['is_required'] and not existing_filename:
+            elif config['is_required'] and not existing_file_url: # File is required and not previously uploaded
                 form_errors.append(f"{config['label']} is required.")
 
         if form_errors:
-            for error_msg in form_errors: # Renamed variable to avoid conflict
+            for error_msg in form_errors:
                 flash(error_msg, 'error')
             form_data_attempt = request.form.to_dict()
             selected_core_interests_attempt = request.form.getlist('core_interest_domains')
@@ -147,45 +160,40 @@ def profile():
                                  selected_core_interests=selected_core_interests_attempt,
                                  available_core_interests=available_core_interests)
 
+        # --- If no validation errors, proceed to update database ---
+        # ... (logic to check if user_details_changed and prepare user_update_payload as before) ...
         user_details_changed = False
         if new_full_name and new_full_name != current_user.full_name: user_update_payload['full_name'] = new_full_name; user_details_changed = True
-        if new_whatsapp_number != (current_user.phone or ''): user_update_payload['phone'] = new_whatsapp_number; user_details_changed = True
-        if new_linkedin != (current_user.linkedin or ''): user_update_payload['linkedin'] = new_linkedin or None; user_details_changed = True
-        if new_github != (current_user.github or ''): user_update_payload['github'] = new_github or None; user_details_changed = True
+        if new_whatsapp_number and new_whatsapp_number != (current_user.phone or ''): user_update_payload['phone'] = new_whatsapp_number; user_details_changed = True # Assuming DB column is 'phone'
+        if new_linkedin != (current_user.linkedin or ''): user_update_payload['linkedin'] = new_linkedin; user_details_changed = True
+        if new_github != (current_user.github or ''): user_update_payload['github'] = new_github; user_details_changed = True
         
         if user_details_changed and user_update_payload:
             update_user_details(current_user.id, **user_update_payload)
 
+        # ... (logic to check if profile_text_fields_changed as before) ...
         profile_text_fields_changed = False
         if profile_db_data:
             for key, value in profile_update_payload.items():
-                if key not in [config['db_field'] for config in files_to_process.values()]: 
+                if key not in [config['db_field'] for config in files_to_process_cloudinary.values()]: 
                     if getattr(profile_db_data, key, None) != value:
                         profile_text_fields_changed = True; break
-        elif any(profile_update_payload.get(key) for key in profile_update_payload if key not in [config['db_field'] for config in files_to_process.values()]):
+        elif any(profile_update_payload.get(key) for key in profile_update_payload if key not in [config['db_field'] for config in files_to_process_cloudinary.values()]):
             profile_text_fields_changed = True
+
+        # profile_update_payload already contains new file URLs if uploads were successful
+        if profile_update_payload and (profile_text_fields_changed or any_new_file_processed_successfully):
+            logging.debug(f"Updating candidate_profiles for {current_user.id} with: {profile_update_payload}")
+            update_candidate_profile(current_user.id, **profile_update_payload)
         
-        final_profile_data_to_update = {}
-        for key, value in profile_update_payload.items():
-            is_file_db_field = any(key == cfg['db_field'] for cfg in files_to_process.values())
-            if is_file_db_field:
-                if value is not None: 
-                    final_profile_data_to_update[key] = value
-            else: 
-                 final_profile_data_to_update[key] = value
-        
-        if final_profile_data_to_update and (profile_text_fields_changed or any_new_file_processed_successfully):
-            logging.debug(f"Updating candidate profile {current_user.id} with: {final_profile_data_to_update}")
-            update_candidate_profile(current_user.id, **final_profile_data_to_update)
-        
-        if user_details_changed or profile_text_fields_changed or any_new_file_processed_successfully:
+        if user_details_changed or (profile_update_payload and (profile_text_fields_changed or any_new_file_processed_successfully)):
             flash('Profile updated successfully!', 'success')
         else:
             flash('No changes were detected in your profile.', 'info')
         
         return redirect(url_for('candidate_routes.profile'))
     
-    # GET Request
+    # --- GET Request (logic as before) ---
     selected_core_interests_on_get = []
     if profile_db_data and profile_db_data.core_interest_domains:
         selected_core_interests_on_get = [interest.strip() for interest in profile_db_data.core_interest_domains.split(',')]
@@ -202,52 +210,52 @@ def profile():
     #     return redirect(url_for('candidate_routes.dashboard'))
     # THE TRY-EXCEPT FOR THE WHOLE FUNCTION WAS MOVED TO WRAP THE ENTIRE CONTENT
 
-@candidate_bp.route('/document/<file_type>') 
-@candidate_bp.route('/document/<file_type>/<action>') 
-def serve_candidate_document(file_type, action='download'): 
-    try:
-        profile = get_candidate_profile(current_user.id)
-        if not profile:
-            flash('Profile not found.', 'error')
-            return redirect(url_for('candidate_routes.dashboard'))
+# @candidate_bp.route('/document/<file_type>') 
+# @candidate_bp.route('/document/<file_type>/<action>') 
+# def serve_candidate_document(file_type, action='download'): 
+#     try:
+#         profile = get_candidate_profile(current_user.id)
+#         if not profile:
+#             flash('Profile not found.', 'error')
+#             return redirect(url_for('candidate_routes.dashboard'))
 
-        filename_map = {
-            'cv': profile.cv_filename, 'id_card': profile.id_card_filename,
-            'marksheet': profile.marksheet_filename, 'ews_certificate': profile.ews_certificate_filename
-        }
-        folder_map = {
-            'cv': 'cvs', 'id_card': 'id_cards',
-            'marksheet': 'marksheets', 'ews_certificate': 'ews_certificates'
-        }
-        viewable_extensions = {'.pdf'} 
+#         filename_map = {
+#             'cv': profile.cv_filename, 'id_card': profile.id_card_filename,
+#             'marksheet': profile.marksheet_filename, 'ews_certificate': profile.ews_certificate_filename
+#         }
+#         folder_map = {
+#             'cv': 'cvs', 'id_card': 'id_cards',
+#             'marksheet': 'marksheets', 'ews_certificate': 'ews_certificates'
+#         }
+#         viewable_extensions = {'.pdf'} 
 
-        filename = filename_map.get(file_type)
-        folder = folder_map.get(file_type)
+#         filename = filename_map.get(file_type)
+#         folder = folder_map.get(file_type)
 
-        if filename and folder:
-            file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], folder, filename)
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                file_ext = os.path.splitext(filename)[1].lower()
-                if action == 'view' and file_ext in viewable_extensions: 
-                    return send_file(file_path, as_attachment=False) 
-                else: 
-                    return send_file(file_path, as_attachment=True)
-            else:
-                logging.warning(f"Candidate: File not found on server: {file_path} for user {current_user.id}")
-                flash(f'{file_type.replace("_", " ").title()} file not found on server.', 'error')
-        else:
-            flash(f'{file_type.replace("_", " ").title()} not uploaded or link broken.', 'error')
+#         if filename and folder:
+#             file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], folder, filename)
+#             if os.path.exists(file_path) and os.path.isfile(file_path):
+#                 file_ext = os.path.splitext(filename)[1].lower()
+#                 if action == 'view' and file_ext in viewable_extensions: 
+#                     return send_file(file_path, as_attachment=False) 
+#                 else: 
+#                     return send_file(file_path, as_attachment=True)
+#             else:
+#                 logging.warning(f"Candidate: File not found on server: {file_path} for user {current_user.id}")
+#                 flash(f'{file_type.replace("_", " ").title()} file not found on server.', 'error')
+#         else:
+#             flash(f'{file_type.replace("_", " ").title()} not uploaded or link broken.', 'error')
         
-        if request.referrer and url_for('candidate_routes.profile') in request.referrer:
-             return redirect(url_for('candidate_routes.profile'))
-        return redirect(url_for('candidate_routes.dashboard'))
+#         if request.referrer and url_for('candidate_routes.profile') in request.referrer:
+#              return redirect(url_for('candidate_routes.profile'))
+#         return redirect(url_for('candidate_routes.dashboard'))
 
-    except Exception as e: # General exception for this route
-        logging.exception(f"Error serving document {file_type} ({action}) for user {current_user.id}:")
-        flash(f'Error accessing {file_type.replace("_", " ").title()}. Please try again.', 'error')
-        if request.referrer and url_for('candidate_routes.profile') in request.referrer:
-             return redirect(url_for('candidate_routes.profile'))
-        return redirect(url_for('candidate_routes.dashboard'))
+#     except Exception as e: # General exception for this route
+#         logging.exception(f"Error serving document {file_type} ({action}) for user {current_user.id}:")
+#         flash(f'Error accessing {file_type.replace("_", " ").title()}. Please try again.', 'error')
+#         if request.referrer and url_for('candidate_routes.profile') in request.referrer:
+#              return redirect(url_for('candidate_routes.profile'))
+#         return redirect(url_for('candidate_routes.dashboard'))
 
 @candidate_bp.route('/jobs')
 def jobs():
