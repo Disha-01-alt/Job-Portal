@@ -32,7 +32,7 @@
                          <div class="row">
                              <div class="col-md-6 mb-3">
                                  <label for="phone" class="form-label">WhatsApp Number * <small>(e.g., 91XXXXXXXXXX)</small></label>
-                                 <input type="text" class="form-control" value="{{ current_user.phone or '' }}" readonly>
+                                 <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" pattern="^(?:\+91|91|0)?[6789]\d{9}$" title="Enter a valid 10-digit Indian mobile number, optionally with +91 or 0 prefix." required>
                                  <small class="text-muted">Contact admin to update basic contact info.</small>
                              </div>
                              <div class="col-md-6 mb-3">
