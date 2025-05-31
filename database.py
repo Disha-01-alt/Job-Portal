@@ -471,7 +471,7 @@ def update_candidate_rating_feedback(user_id, rating, feedback, admin_tags=None,
         
         cur.execute(query, tuple(params))
         conn.commit()
-def search_candidates(skills=None, education=None, min_rating=None, experience=None, core_interest_domains_filter=None, admin_tags_filter=None): # Added new filters
+def search_candidates(min_rating=None, core_interest_domains_filter=None, admin_tags_filter=None): # Added new filters
     """Search candidates with filters"""
     with get_db() as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -490,21 +490,13 @@ def search_candidates(skills=None, education=None, min_rating=None, experience=N
         """
         params = []
         
-        if skills: # General skills search
-            query += " AND LOWER(cp.skills) LIKE LOWER(%s)"
-            params.append(f"%{skills}%")
         
-        if education: # General education search (can be refined if education becomes structured)
-            query += " AND (LOWER(cp.education) LIKE LOWER(%s) OR LOWER(cp.college_name) LIKE LOWER(%s) OR LOWER(cp.degree) LIKE LOWER(%s))"
-            params.extend([f"%{education}%", f"%{education}%", f"%{education}%"])
         
         if min_rating:
             query += " AND cp.rating >= %s"
             params.append(min_rating)
         
-        if experience: # General experience search
-            query += " AND LOWER(cp.experience) LIKE LOWER(%s)"
-            params.append(f"%{experience}%")
+        
 
         if core_interest_domains_filter: # Filter by specific core interests
             # Assuming core_interest_domains_filter is a list of strings
