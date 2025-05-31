@@ -267,7 +267,9 @@ def serve_candidate_document(file_type, action='download'):
 
 @candidate_bp.route('/jobs')
 def jobs():
-    logging.info(f"Accessing /candidate/jobs by user: {current_user.email if current_user.is_authenticated else 'Guest'}")
+    logging.info(
+        f"Accessing /candidate/jobs by user: {current_user.email if current_user.is_authenticated else 'Guest'}"
+    )
     try:
         location_filter = request.args.get('location_filter', '').strip()
         work_model_filter = request.args.get('work_model_filter', '').strip()
@@ -282,18 +284,20 @@ def jobs():
             company_filter=company_filter or None,
             job_function_filter=job_function_filter or None
         )
-        
-        return render_template('candidate/jobs.html', 
-                            jobs=jobs_list,
-                            search_filters={
-                                'location': location_filter,
-                                'work_model': work_model_filter,
-                                'date_posted': date_posted_filter,
-                                'company': company_filter,
-                                'job_function': job_function_filter
-                            })
+
+        return render_template(
+            'candidate/jobs.html',
+            jobs=jobs_list,
+            search_filters={
+                'location': location_filter,
+                'work_model': work_model_filter,
+                'date_posted': date_posted_filter,
+                'company': company_filter,
+                'job_function': job_function_filter
+            }
+        )
+
     except Exception as e:
         logging.exception("Error loading jobs page for user:")
         flash('Error loading job listings. Please try again.', 'error')
-        # For a jobs page, redirecting to index on error is usually fine
         return redirect(url_for('index'))
