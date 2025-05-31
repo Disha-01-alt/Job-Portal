@@ -146,19 +146,23 @@ def profile():
             existing_file_url = getattr(profile_db_data, config['db_field'], None) if profile_db_data else None
             
             if file and file.filename:
-                original_filename = secure_filename(file.filename)
+                original_filename = secure_filename(file.filename) # Get original name
                 if original_filename.lower().endswith('.pdf'):
                     any_new_file_processed_successfully = True
                     try:
-                        public_id_base = os.path.splitext(original_filename)[0] # Name without original extension
-                        public_id_with_ext = f"{current_user.id}_{form_field_name}_{public_id_base[:40]}.pdf" # Explicitly add .pdf
-                        logging.info(f"Uploading {config['label']} to Cloudinary. Public ID: {public_id}, Folder: {config['folder']}")
+                        # Use a structured public_id for better organization in Cloudinary
+                        public_id_base = os.path.splitext(original_filename)[0] # Name without extension
+                        
+                        # Ensure public_id includes the .pdf extension explicitly
+                        public_id_with_ext = f"{current_user.id}_{form_field_name}_{public_id_base[:40]}.pdf"
+
+                        logging.info(f"Uploading {config['label']} to Cloudinary. Public ID: {public_id_with_ext}, Folder: {config['folder']}")
                         
                         upload_result = cloudinary.uploader.upload(
                             file,
                             folder=config['folder'],
-                            public_id=public_id_with_ext,
-                            resource_type="raw",
+                            public_id=public_id_with_ext, # <<< --- CORRECTED: Use public_id_with_ext
+                            resource_type="raw", 
                             overwrite=True 
                         )
                         profile_update_payload[config['db_field']] = upload_result['secure_url']
@@ -168,9 +172,9 @@ def profile():
                         form_errors.append(f"Error uploading {config['label']}. Please try again.")
                 else:
                     form_errors.append(f"{config['label']} must be a PDF file.")
-            elif config['is_required'] and not existing_file_url:
+            elif config['is_required'] and not existing_file_url: # File is required and not previously uploaded
                 form_errors.append(f"{config['label']} is required.")
-
+# ... rest of the function
 
         if form_errors:
             for error_msg in form_errors:
