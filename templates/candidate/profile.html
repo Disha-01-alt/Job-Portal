@@ -16,40 +16,46 @@
             <!-- Left Column: Main Profile Info -->
             <div class="col-lg-8">
                 <!-- Personal Information (Mostly Read-only, from User model) -->
-                <div class="card mb-4">
+                 <div class="card mb-4">
                     <div class="card-header"><h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Personal Information</h5></div>
                     <div class="card-body">
                          <div class="row">
                              <div class="col-md-6 mb-3">
                                  <label class="form-label">Full Name</label>
+                                 {# This field is readonly and does not have a 'name' attribute, so it won't be submitted. #}
+                                 {# Full name should be managed via registration or a dedicated account settings page if editable post-reg. #}
                                  <input type="text" class="form-control" value="{{ current_user.full_name or '' }}" readonly>
                              </div>
                              <div class="col-md-6 mb-3">
                                  <label class="form-label">Email</label>
+                                 {# Email is a primary identifier and typically not changed freely. #}
                                  <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
                              </div>
                          </div>
                          <div class="row">
-                            {# templates/candidate/profile.html - Inside the user details section #}
-<div class="col-md-6 mb-3">
-    <label for="whatsapp_number" class="form-label">WhatsApp Number * <small>(e.g., 91XXXXXXXXXX or 0XXXXXXXXXX)</small></label>
-    <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" 
-           value="{{ (form_data_attempt.whatsapp_number if form_data_attempt else (current_user.phone if current_user else '')) or '' }}" 
-           pattern="^(?:\+91|91|0)?[6789]\d{9}$" 
-           title="Please enter a valid 10-digit Indian mobile number. You can optionally start with +91, 91, or 0." 
-           required>
-    <div class="invalid-feedback">
-        Please provide a valid Indian WhatsApp number (e.g., 91XXXXXXXXXX or XXXXXXXXXX starting with 6,7,8,9).
-    </div>
-</div>
+                            <div class="col-md-6 mb-3">
+                                <label for="whatsapp_number" class="form-label">WhatsApp Number * <small>(e.g., 91XXXXXXXXXX or 0XXXXXXXXXX)</small></label>
+                                <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" 
+                                       value="{{ (form_data_attempt.whatsapp_number if form_data_attempt else (current_user.phone if current_user else '')) or '' }}" 
+                                       pattern="^(?:\+91|91|0)?[6789]\d{9}$" 
+                                       title="Please enter a valid 10-digit Indian mobile number. You can optionally start with +91, 91, or 0." 
+                                       required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid Indian WhatsApp number (e.g., 91XXXXXXXXXX or XXXXXXXXXX starting with 6,7,8,9).
+                                </div>
+                            </div>
                              <div class="col-md-6 mb-3">
-                                 <label class="form-label">LinkedIn Profile URL</label>
-                                 <input type="url" class="form-control" value="{{ current_user.linkedin or '' }}" readonly>
+                                 <label for="linkedin" class="form-label">LinkedIn Profile URL</label> {# Changed from readonly #}
+                                 <input type="url" class="form-control" id="linkedin" name="linkedin" 
+                                        value="{{ (form_data_attempt.linkedin if form_data_attempt else (current_user.linkedin if current_user else '')) or '' }}" 
+                                        placeholder="https://linkedin.com/in/yourprofile">
                              </div>
                          </div>
                         <div class="mb-3">
-                             <label for="github" class="form-label">GitHub Profile URL</label> {# Added for #}
-                             <input type="url" class="form-control" id="github" name="github" value="{{ current_user.github or '' }}" placeholder="https://github.com/yourusername"> {# REMOVED readonly, ADDED name, id, placeholder #}
+                             <label for="github" class="form-label">GitHub Profile URL</label>
+                             <input type="url" class="form-control" id="github" name="github" 
+                                    value="{{ (form_data_attempt.github if form_data_attempt else (current_user.github if current_user else '')) or '' }}" 
+                                    placeholder="https://github.com/yourusername">
                          </div>
                     </div>
                 </div>
