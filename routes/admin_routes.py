@@ -249,7 +249,7 @@ def candidate_detail(candidate_id):
         if not candidate:
             flash('Candidate not found.', 'error')
             return redirect(url_for('admin_routes.review_candidates'))
-        
+        logging.debug(f"Admin candidate_detail - Candidate data for template: {candidate}")
         selected_admin_tags = [tag.strip() for tag in candidate.get('admin_tags', '').split(',') if tag.strip()] \
             if candidate.get('admin_tags') else []
         
