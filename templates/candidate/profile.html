@@ -30,11 +30,18 @@
                              </div>
                          </div>
                          <div class="row">
-                             <div class="col-md-6 mb-3">
-                                 <label for="phone" class="form-label">WhatsApp Number * <small>(e.g., 91XXXXXXXXXX)</small></label>
-                                 <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" pattern="^(?:\+91|91|0)?[6789]\d{9}$" title="Enter a valid 10-digit Indian mobile number, optionally with +91 or 0 prefix." required>
-                                 <small class="text-muted">Contact admin to update basic contact info.</small>
-                             </div>
+                            {# templates/candidate/profile.html - Inside the user details section #}
+<div class="col-md-6 mb-3">
+    <label for="whatsapp_number" class="form-label">WhatsApp Number * <small>(e.g., 91XXXXXXXXXX or 0XXXXXXXXXX)</small></label>
+    <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" 
+           value="{{ (form_data_attempt.whatsapp_number if form_data_attempt else (current_user.phone if current_user else '')) or '' }}" 
+           pattern="^(?:\+91|91|0)?[6789]\d{9}$" 
+           title="Please enter a valid 10-digit Indian mobile number. You can optionally start with +91, 91, or 0." 
+           required>
+    <div class="invalid-feedback">
+        Please provide a valid Indian WhatsApp number (e.g., 91XXXXXXXXXX or XXXXXXXXXX starting with 6,7,8,9).
+    </div>
+</div>
                              <div class="col-md-6 mb-3">
                                  <label class="form-label">LinkedIn Profile URL</label>
                                  <input type="url" class="form-control" value="{{ current_user.linkedin or '' }}" readonly>
