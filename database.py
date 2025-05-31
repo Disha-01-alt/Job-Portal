@@ -219,9 +219,15 @@ def get_candidate_details_by_id(user_id):
         cur.execute("""
             SELECT u.id, u.email, u.full_name, u.phone, u.linkedin, u.github, u.created_at,
                    u.is_approved,
-                   cp.user_id as profile_user_id, cp.summary,
+                    cp.user_id as profile_user_id, 
+                   cp.summary, 
                    cp.cv_filename, cp.id_card_filename, cp.marksheet_filename,
-                   cp.rating, cp.admin_feedback, cp.updated_at as profile_updated_at
+                   cp.rating, cp.admin_feedback, cp.updated_at as profile_updated_at,
+                   cp.ews_certificate_filename, 
+                   cp.college_name, cp.degree, cp.graduation_year, -- ARE THESE HERE?
+                   cp.core_interest_domains, 
+                   cp.twelfth_school_type, cp.parental_annual_income, -- ARE THESE HERE?
+                   cp.admin_tags, cp.is_certified
             FROM users u
             LEFT JOIN candidate_profiles cp ON u.id = cp.user_id
             WHERE u.id = %s AND u.role = 'candidate'
