@@ -28,8 +28,7 @@ class User(UserMixin):
         return generate_password_hash(password)
 
 class CandidateProfile:
-    def __init__(self, user_id, summary=None, education=None, experience=None, 
-                 skills=None, cv_filename=None, id_card_filename=None, 
+    def __init__(self, user_id, summary=None,cv_filename=None, id_card_filename=None, 
                  marksheet_filename=None, rating=None, admin_feedback=None,
                  created_at=None, # This was in your original file, but DB schema puts it in users
                                    # and has `updated_at` in candidate_profiles. Let's align.
