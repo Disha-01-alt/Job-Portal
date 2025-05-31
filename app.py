@@ -76,4 +76,7 @@ def internal_error(error):
     return render_template('base.html', content='<div class="container"><h1>Internal Server Error</h1><p>An unexpected error occurred. Please try again later.</p></div>'), 500
 
 print("CLIENT_ID from .env:", os.getenv("GOOGLE_OAUTH_CLIENT_ID"))
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))  # use 5000 locally, PORT on Render
+    app.run(host='0.0.0.0', port=port)
 
