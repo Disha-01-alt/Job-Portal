@@ -201,10 +201,9 @@
                 </div>
             {% endif %}
             
-            <!-- Candidate Documents -->
+                       <!-- Candidate Documents (Using Direct Cloudinary URLs) -->
             <div class="card mb-4">
-                {# ... (Document section as in previous correct version, using candidate.get(doc_item.filename_attr)) ... #}
-                <div class="card-header"><h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Candidate Documents</h6></div>
+                <div class="card-header"><h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Candidate Documents (PDF Only)</h6></div>
                 <div class="card-body">
                     {% set doc_types = [
                         {'type': 'cv', 'name': 'CV/Resume', 'icon': 'fa-file-pdf text-danger', 'filename_attr': 'cv_filename'},
@@ -215,20 +214,28 @@
                     {% for doc_item in doc_types %}
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div><i class="fas {{ doc_item.icon }} me-2"></i><span class="fw-bold">{{ doc_item.name }}</span></div>
-                            {% if candidate.get(doc_item.filename_attr) %}
+                            {% if candidate.get(doc_item.filename_attr) %} {# This will be the Cloudinary URL #}
                                 <div class="btn-group btn-group-sm">
-                                    {% set current_filename = candidate.get(doc_item.filename_attr) %}
-                                    {% if current_filename.lower().endswith(('.pdf')) %} {# All are PDF now #}
-                                    <a href="{{ url_for('admin_routes.serve_admin_document', candidate_id=candidate.id, file_type=doc_item.type, action='view') }}" target="_blank" class="btn btn-outline-info" title="View {{ doc_item.name }}"><i class="fas fa-eye"></i></a>
-                                    {% endif %}
-                                    <a href="{{ url_for('admin_routes.serve_admin_document', candidate_id=candidate.id, file_type=doc_item.type, action='download') }}" class="btn btn-outline-primary" title="Download {{ doc_item.name }}"><i class="fas fa-download"></i></a>
+                                    {% set cloud_url = candidate.get(doc_item.filename_attr) %}
+                                    {# Since all are PDFs now and Cloudinary URLs are directly viewable for PDFs #}
+                                    <a href="{{ cloud_url }}" target="_blank" class="btn btn-outline-info" title="View {{ doc_item.name }}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {# For download, link to the same URL but add the download attribute #}
+                                    {# Extracting a clean filename from a Cloudinary URL can be tricky if it has transformations/versioning #}
+                                    {# A simple approach for the download attribute: #}
+                                    {% set download_filename = cloud_url.split('/')[-1].split('?')[0]|replace('%20', '_') %}
+                                    <a href="{{ cloud_url }}" target="_blank" download="{{ download_filename or doc_item.type ~ '.pdf' }}" class="btn btn-outline-primary" title="Download {{ doc_item.name }}">
+                                        <i class="fas fa-download"></i>
+                                    </a>
                                 </div>
-                            {% else %}<span class="badge bg-secondary">Not uploaded</span>{% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Not uploaded</span>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
             </div>
-            
             <!-- Profile Completeness -->
             <div class="card">
                  {# ... (Profile completeness section as before, using candidate.get('field_name')) ... #}
