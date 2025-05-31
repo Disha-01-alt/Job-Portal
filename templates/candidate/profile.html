@@ -147,104 +147,88 @@
                     <div class="card-header"><h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Documents</h5></div>
                     <div class="card-body">
                         <!-- CV -->
-                        <div class="mb-3">
-                            <label for="cv" class="form-label">CV/Resume * <small>(PDF ONLY)</small></label>
+                          <div class="mb-3">
+                            <label for="cv" class="form-label">CV/Resume <span class="text-danger">*</span></label>
                             {% if profile and profile.cv_filename %}
                                 <div class="mb-1 small d-flex justify-content-between align-items-center">
-                                    <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.cv_filename|truncate(25, True) }}</span>
-                                    <div class="btn-group btn-group-sm">
-                                        {% if profile.cv_filename.lower().endswith(('.pdf')) %} {# Only PDF view for CV #}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='cv', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
-                                        {% endif %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='cv', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
-                                    </div>
+                                    <span>
+                                        <i class="fas fa-file-pdf text-danger me-1"></i>
+                                        <a href="{{ profile.cv_filename }}" target="_blank" title="View current CV - {{ profile.cv_filename.split('/')[-1]|replace('%20', ' ')|truncate(30, True) }}">
+                                            View Current CV
+                                        </a>
+                                    </span>
+                                    <a href="{{ profile.cv_filename }}" target="_blank" download="{{ profile.cv_filename.split('/')[-1]|replace('%20', ' ') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Download CV"><i class="fas fa-download"></i></a>
                                 </div>
                             {% endif %}
                             <input type="file" class="form-control form-control-sm mt-1" id="cv" name="cv" accept=".pdf" {{ 'required' if not (profile and profile.cv_filename) else '' }}>
                         </div>
                         
                         <!-- ID Card -->
-                        <div class="mb-3">
-                            <label for="id_card" class="form-label">ID Card * <small>(PDF ONLY)</small></label>
+                       <div class="mb-3">
+                            <label for="id_card" class="form-label">ID Card <span class="text-danger">*</span></label>
                             {% if profile and profile.id_card_filename %}
                                 <div class="mb-1 small d-flex justify-content-between align-items-center">
-                                    <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.id_card_filename|truncate(25, True) }}</span>
-                                    <div class="btn-group btn-group-sm">
-                                        {% if profile.id_card_filename.lower().endswith(('.pdf')) %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='id_card', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
-                                        {% endif %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='id_card', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
-                                    </div>
+                                    <span>
+                                        <i class="fas fa-id-card text-info me-1"></i>
+                                        <a href="{{ profile.id_card_filename }}" target="_blank" title="View current ID Card - {{ profile.id_card_filename.split('/')[-1]|replace('%20', ' ')|truncate(30, True) }}">
+                                            View Current ID
+                                        </a>
+                                    </span>
+                                    <a href="{{ profile.id_card_filename }}" target="_blank" download="{{ profile.id_card_filename.split('/')[-1]|replace('%20', ' ') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Download ID Card"><i class="fas fa-download"></i></a>
                                 </div>
                             {% endif %}
                             <input type="file" class="form-control form-control-sm mt-1" id="id_card" name="id_card" accept=".pdf" {{ 'required' if not (profile and profile.id_card_filename) else '' }}>
                         </div>
                         
+                        
                         <!-- Marksheet -->
                         <div class="mb-3">
-                            <label for="marksheet" class="form-label">12th Marksheet * <small>(PDF ONLY)</small></label>
+                            <label for="marksheet" class="form-label">12th Marksheet <span class="text-danger">*</span></label>
                             {% if profile and profile.marksheet_filename %}
                                <div class="mb-1 small d-flex justify-content-between align-items-center">
-                                    <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.marksheet_filename|truncate(25, True) }}</span>
-                                    <div class="btn-group btn-group-sm">
-                                        {% if profile.marksheet_filename.lower().endswith(('.pdf')) %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='marksheet', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
-                                        {% endif %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='marksheet', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
-                                    </div>
+                                    <span>
+                                        <i class="fas fa-certificate text-success me-1"></i>
+                                        <a href="{{ profile.marksheet_filename }}" target="_blank" title="View current Marksheet - {{ profile.marksheet_filename.split('/')[-1]|replace('%20', ' ')|truncate(30, True) }}">
+                                            View Current Marksheet
+                                        </a>
+                                    </span>
+                                    <a href="{{ profile.marksheet_filename }}" target="_blank" download="{{ profile.marksheet_filename.split('/')[-1]|replace('%20', ' ') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Download Marksheet"><i class="fas fa-download"></i></a>
                                 </div>
                             {% endif %}
                             <input type="file" class="form-control form-control-sm mt-1" id="marksheet" name="marksheet" accept=".pdf" {{ 'required' if not (profile and profile.marksheet_filename) else '' }}>
                         </div>
 
+
                         <!-- EWS Certificate -->
-                        <div class="mb-3">
-                            <label for="ews_certificate" class="form-label">EWS Certificate (Optional) <small>(PDF ONLY)</small></label>
+                       <div class="mb-3">
+                            <label for="ews_certificate" class="form-label">EWS Certificate (Optional)</label>
                             {% if profile and profile.ews_certificate_filename %}
                                 <div class="mb-1 small d-flex justify-content-between align-items-center">
-                                    <span><i class="fas fa-check-circle text-success me-1"></i>{{ profile.ews_certificate_filename|truncate(25, True) }}</span>
-                                    <div class="btn-group btn-group-sm">
-                                        {% if profile.ews_certificate_filename.lower().endswith(('.pdf')) %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='ews_certificate', action='view') }}" target="_blank" class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
-                                        {% endif %}
-                                        <a href="{{ url_for('candidate_routes.serve_candidate_document', file_type='ews_certificate', action='download') }}" class="btn btn-outline-primary"><i class="fas fa-download"></i></a>
-                                    </div>
+                                    <span>
+                                        <i class="fas fa-file-invoice text-warning me-1"></i>
+                                        <a href="{{ profile.ews_certificate_filename }}" target="_blank" title="View current EWS Certificate - {{ profile.ews_certificate_filename.split('/')[-1]|replace('%20', ' ')|truncate(30, True) }}">
+                                            View Current EWS Cert.
+                                        </a>
+                                    </span>
+                                    <a href="{{ profile.ews_certificate_filename }}" target="_blank" download="{{ profile.ews_certificate_filename.split('/')[-1]|replace('%20', ' ') }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Download EWS Certificate"><i class="fas fa-download"></i></a>
                                 </div>
                             {% endif %}
                             <input type="file" class="form-control form-control-sm mt-1" id="ews_certificate" name="ews_certificate" accept=".pdf">
                         </div>
-                        <small class="text-muted d-block">Ensure all mandatory (*) documents are uploaded. Click <i class="fas fa-eye"></i> to view (PDF/Images) or <i class="fas fa-download"></i> to download.</small>
+                        <small class="text-muted d-block">All documents must be PDF. Fields with <span class="text-danger">*</span> are mandatory.</small>
                     </div>
                 </div>
                 
                 <!-- Admin Review (Display Only) -->
+                <!-- Admin Review (Display Only if applicable) -->
                 {% if profile and (profile.rating or profile.admin_feedback or profile.admin_tags or profile.is_certified) %}
                 <div class="card mb-4">
                     <div class="card-header"><h5 class="mb-0"><i class="fas fa-user-shield me-2"></i>Admin Review</h5></div>
                     <div class="card-body">
-                        {% if profile.rating %}
-                            <div class="mb-2"><strong class="small">Rating:</strong>
-                                {% for i in range(1, 6) %}<i class="fas fa-star {{ 'text-warning' if i <= profile.rating else 'text-muted' }}"></i>{% endfor %}
-                                ({{ profile.rating }}/5)
-                            </div>
-                        {% endif %}
-                        {% if profile.admin_tags %}
-                            <div class="mb-2"><strong class="small">Admin Tags:</strong>
-                                {% for tag in profile.admin_tags.split(',') %}
-                                    <span class="badge bg-info text-dark me-1 mb-1 fw-normal">{{ tag.strip() }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        {% if profile.is_certified %}
-                            <div class="mb-2"><strong class="small">Certification:</strong>
-                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Admin Certified</span>
-                            </div>
-                        {% endif %}
-                        {% if profile.admin_feedback %}
-                            <div><strong class="small">Feedback:</strong>
-                                <p class="text-muted small mb-0 p-2 bg-light rounded">{{ profile.admin_feedback }}</p>
-                            </div>
-                        {% endif %}
+                        {% if profile.rating %}<div class="mb-2"><strong class="small">Rating:</strong> {% for i in range(1, 6) %}<i class="fas fa-star {{ 'text-warning' if i <= profile.rating else 'text-muted' }}"></i>{% endfor %} ({{ profile.rating }}/5)</div>{% endif %}
+                        {% if profile.admin_tags %}<div class="mb-2"><strong class="small">Admin Tags:</strong> {% for tag in profile.admin_tags.split(',') %}{% if tag.strip() %}<span class="badge bg-info text-dark me-1 mb-1 fw-normal">{{ tag.strip() }}</span>{% endif %}{% endfor %}</div>{% endif %}
+                        {% if profile.is_certified %}<div class="mb-2"><strong class="small">Certification:</strong> <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Admin Certified</span></div>{% endif %}
+                        {% if profile.admin_feedback %}<div><strong class="small">Feedback:</strong><p class="text-muted small mb-0 p-2 bg-light rounded">{{ profile.admin_feedback }}</p></div>{% endif %}
                     </div>
                 </div>
                 {% endif %}
