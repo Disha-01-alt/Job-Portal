@@ -43,13 +43,11 @@ def profile():
         if request.method == 'POST':
             update_data = {}
             update_data['summary'] = request.form.get('summary', '').strip()
-            update_data['experience'] = request.form.get('experience', '').strip() 
-            update_data['skills'] = request.form.get('skills', '').strip()      
+                
             update_data['college_name'] = request.form.get('college_name', '').strip()
             update_data['degree'] = request.form.get('degree', '').strip()
             grad_year_str = request.form.get('graduation_year', '').strip()
             update_data['graduation_year'] = int(grad_year_str) if grad_year_str.isdigit() else None
-            update_data['education'] = request.form.get('education_details', '').strip() # For additional text
             
             core_interests_list = request.form.getlist('core_interest_domains')
             update_data['core_interest_domains'] = ','.join(core_interests_list) if core_interests_list else None
