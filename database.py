@@ -52,7 +52,7 @@ def init_db():
                 id SERIAL PRIMARY KEY,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
-                role VARCHAR(50) NOT NULL CHECK (role IN ('candidate', 'admin', 'company')),
+                role VARCHAR(50) NOT NULL CHECK (role IN ('candidate', 'admin', 'company', 'pending_setup')),
                 full_name VARCHAR(255),
                 phone VARCHAR(20),
                 linkedin VARCHAR(255),
