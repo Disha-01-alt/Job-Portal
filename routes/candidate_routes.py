@@ -53,60 +53,86 @@ def profile():
     ]
     profile_db_data = get_candidate_profile(current_user.id)
 
+# --- Job-Portal-master/routes/candidate_routes.py (Modifications in profile POST route) ---
+# ... inside def profile():
     if request.method == 'POST':
         logging.debug(f"POST to /candidate/profile. Form: {request.form}, Files: {request.files}")
         
         form_errors = []
         user_update_payload = {}
         profile_update_payload = {}
+        user_details_changed = False # Initialize this flag
 
-        new_full_name = request.form.get('full_name', '').strip()
+        # Full Name is NOT taken from this form. It's read-only in the HTML.
+        # Email is NOT taken from this form. It's read-only in the HTML.
+
+        # WhatsApp Number (editable in form)
         new_whatsapp_number = request.form.get('whatsapp_number', '').strip()
-        new_linkedin = request.form.get('linkedin', '').strip() 
-        new_github = request.form.get('github', '').strip()     
-
-        if not new_full_name: form_errors.append("Full Name is required.")
         if not new_whatsapp_number: 
             form_errors.append("WhatsApp Number is required.")
         elif not re.fullmatch(r"^(?:\+91|91|0)?[6789]\d{9}$", new_whatsapp_number):
             form_errors.append("Invalid WhatsApp Number. Use a 10-digit Indian number, optionally with +91/91/0 prefix.")
+        # Check for change only if no errors related to whatsapp number format/presence
+        elif not any("WhatsApp Number" in error for error in form_errors) and new_whatsapp_number != (current_user.phone or ''):
+            user_update_payload['phone'] = new_whatsapp_number
+            user_details_changed = True
         
+        # LinkedIn (now editable in form)
+        new_linkedin = request.form.get('linkedin', '').strip()
+        if new_linkedin != (current_user.linkedin or ''): # Allows empty string to clear
+            user_update_payload['linkedin'] = new_linkedin
+            user_details_changed = True
+        
+        # GitHub (editable in form)
+        new_github = request.form.get('github', '').strip()     
+        if new_github != (current_user.github or ''): # Allows empty string to clear
+            user_update_payload['github'] = new_github
+            user_details_changed = True
+
+        # Summary (candidate_profiles table)
         summary = request.form.get('summary', '').strip()
         if not summary: form_errors.append("Summary of Skills and Strengths is required.")
         profile_update_payload['summary'] = summary
         
+        # College Name (candidate_profiles table)
         college_name = request.form.get('college_name', '').strip()
         if not college_name: form_errors.append("College Name is required.")
         profile_update_payload['college_name'] = college_name
         
+        # Degree (candidate_profiles table)
         degree = request.form.get('degree', '').strip()
         if not degree: form_errors.append("Degree is required.")
         profile_update_payload['degree'] = degree
         
+        # Graduation Year (candidate_profiles table)
         grad_year_str = request.form.get('graduation_year', '').strip()
         if not grad_year_str: 
             form_errors.append("Graduation Year is required.")
-            profile_update_payload['graduation_year'] = None
+            # Do not set profile_update_payload['graduation_year'] to None here if it's a validation error
+            # Let it retain old value or handle None carefully in update_candidate_profile
         elif not grad_year_str.isdigit() or not (1950 <= int(grad_year_str) <= 2050):
             form_errors.append("Invalid Graduation Year. Please enter a valid year (e.g., 1950-2050).")
-            profile_update_payload['graduation_year'] = None
         else:
              profile_update_payload['graduation_year'] = int(grad_year_str)
 
+        # Core Interest Domains (candidate_profiles table)
         core_interests_list = request.form.getlist('core_interest_domains')
         if not core_interests_list: 
             form_errors.append("Please select at least one Core Interest Domain.")
         profile_update_payload['core_interest_domains'] = ','.join(core_interests_list) if core_interests_list else None
         
+        # 12th School Type (candidate_profiles table)
         twelfth_school_type = request.form.get('twelfth_school_type')
         if not twelfth_school_type: form_errors.append("12th School Type is required.")
         profile_update_payload['twelfth_school_type'] = twelfth_school_type
         
+        # Parental Annual Income (candidate_profiles table)
         parental_annual_income = request.form.get('parental_annual_income')
         if not parental_annual_income: form_errors.append("Parental Annual Income is required.")
         profile_update_payload['parental_annual_income'] = parental_annual_income
 
         # --- File Uploads to Cloudinary (All PDF only) ---
+        # ... (existing file upload logic - seems okay as per problem description) ...
         files_to_process_cloudinary = {
             'cv': {'folder': f'job_portal/user_{current_user.id}/cvs', 'db_field': 'cv_filename', 'label': 'CV/Resume', 'is_required': True},
             'id_card': {'folder': f'job_portal/user_{current_user.id}/id_cards', 'db_field': 'id_card_filename', 'label': 'ID Card', 'is_required': True},
@@ -120,14 +146,12 @@ def profile():
             existing_file_url = getattr(profile_db_data, config['db_field'], None) if profile_db_data else None
             
             if file and file.filename:
-                original_filename = secure_filename(file.filename) # Get original name for Cloudinary public_id
+                original_filename = secure_filename(file.filename)
                 if original_filename.lower().endswith('.pdf'):
                     any_new_file_processed_successfully = True
                     try:
-                        # Use a structured public_id for better organization in Cloudinary
-                        # Example: job_portal/user_3/cvs/my_cv_v2 (Cloudinary adds .pdf automatically for raw files)
                         public_id_base = os.path.splitext(original_filename)[0]
-                        public_id = f"{current_user.id}_{form_field_name}_{public_id_base[:50]}" # Truncate long names
+                        public_id = f"{current_user.id}_{form_field_name}_{public_id_base[:50]}" 
 
                         logging.info(f"Uploading {config['label']} to Cloudinary. Public ID: {public_id}, Folder: {config['folder']}")
                         
@@ -135,10 +159,9 @@ def profile():
                             file,
                             folder=config['folder'],
                             public_id=public_id,
-                            resource_type="raw", # For PDFs and other non-image/video files
-                            overwrite=True # Overwrite if file with same public_id exists in folder
+                            resource_type="raw",
+                            overwrite=True 
                         )
-                        # Store the secure URL provided by Cloudinary
                         profile_update_payload[config['db_field']] = upload_result['secure_url']
                         logging.info(f"Uploaded {config['label']} to Cloudinary: {upload_result['secure_url']}")
                     except Exception as e_cloudinary:
@@ -146,42 +169,40 @@ def profile():
                         form_errors.append(f"Error uploading {config['label']}. Please try again.")
                 else:
                     form_errors.append(f"{config['label']} must be a PDF file.")
-            elif config['is_required'] and not existing_file_url: # File is required and not previously uploaded
+            elif config['is_required'] and not existing_file_url:
                 form_errors.append(f"{config['label']} is required.")
+
 
         if form_errors:
             for error_msg in form_errors:
                 flash(error_msg, 'error')
-            form_data_attempt = request.form.to_dict()
+            form_data_attempt = request.form.to_dict() # Keep this
+            # Ensure selected_core_interests_attempt is correctly set for re-rendering
             selected_core_interests_attempt = request.form.getlist('core_interest_domains')
             return render_template('candidate/profile.html',
                                  profile=profile_db_data, 
                                  form_data_attempt=form_data_attempt, 
-                                 selected_core_interests=selected_core_interests_attempt,
-                                 available_core_interests=available_core_interests)
+                                 selected_core_interests=selected_core_interests_attempt, # Pass this back
+                                 available_core_interests=available_core_interests) # And this
 
         # --- If no validation errors, proceed to update database ---
-        # ... (logic to check if user_details_changed and prepare user_update_payload as before) ...
-        user_details_changed = False
-        if new_full_name and new_full_name != current_user.full_name: user_update_payload['full_name'] = new_full_name; user_details_changed = True
-        if new_whatsapp_number and new_whatsapp_number != (current_user.phone or ''): user_update_payload['phone'] = new_whatsapp_number; user_details_changed = True # Assuming DB column is 'phone'
-        if new_linkedin != (current_user.linkedin or ''): user_update_payload['linkedin'] = new_linkedin; user_details_changed = True
-        if new_github != (current_user.github or ''): user_update_payload['github'] = new_github; user_details_changed = True
         
-        if user_details_changed and user_update_payload:
+        if user_details_changed and user_update_payload: # Only update if changed and payload exists
+            logging.debug(f"Updating user (users table) for {current_user.id} with: {user_update_payload}")
             update_user_details(current_user.id, **user_update_payload)
 
-        # ... (logic to check if profile_text_fields_changed as before) ...
         profile_text_fields_changed = False
-        if profile_db_data:
+        if profile_db_data: # Check against existing profile data
             for key, value in profile_update_payload.items():
+                # Exclude file fields from this specific text change check, they are handled by any_new_file_processed_successfully
                 if key not in [config['db_field'] for config in files_to_process_cloudinary.values()]: 
                     if getattr(profile_db_data, key, None) != value:
-                        profile_text_fields_changed = True; break
+                        profile_text_fields_changed = True
+                        break
         elif any(profile_update_payload.get(key) for key in profile_update_payload if key not in [config['db_field'] for config in files_to_process_cloudinary.values()]):
+             # If no profile_db_data, any text field with a value is a change
             profile_text_fields_changed = True
 
-        # profile_update_payload already contains new file URLs if uploads were successful
         if profile_update_payload and (profile_text_fields_changed or any_new_file_processed_successfully):
             logging.debug(f"Updating candidate_profiles for {current_user.id} with: {profile_update_payload}")
             update_candidate_profile(current_user.id, **profile_update_payload)
@@ -192,6 +213,9 @@ def profile():
             flash('No changes were detected in your profile.', 'info')
         
         return redirect(url_for('candidate_routes.profile'))
+    
+    # --- GET Request ---
+    # ... (existing GET logic should be fine) ...
     
     # --- GET Request (logic as before) ---
     selected_core_interests_on_get = []
