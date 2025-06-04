@@ -5,9 +5,9 @@
 {% block content %}
 <!-- Hero Section -->
 {# ... (Hero section as before) ... #}
-<div class="bg-primary text-white py-5">
-    <div class="container">
-        <div class="row align-items-center">
+<div class="hero-section text-white py-5">
+  <div class="container">
+    <div class="row align-items-center">
             <div class="col-lg-6">
                 <h1 class="display-4 fw-bold mb-4">Find Your Dream Job</h1>
                 <p class="lead mb-4">Connect with top employers and discover opportunities that match your skills and aspirations.</p>
@@ -26,8 +26,9 @@
                     </a>
                 {% endif %}
             </div>
-            <div class="col-lg-6 text-center">
-                <i class="fas fa-briefcase" style="font-size: 12rem; opacity: 0.3;"></i>
+                        <div class="col-lg-6 text-center">
+                {# REMOVED the large decorative briefcase icon: <i class="fas fa-briefcase" style="font-size: 12rem; opacity: 0.3;"></i> #}
+                <!-- You can place url('/static/images/Pasted image (2).png')if desired, or leave it empty -->
             </div>
         </div>
     </div>
