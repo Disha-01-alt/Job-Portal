@@ -44,7 +44,184 @@
   position: relative;
   z-index: 1; /* ensure text is above overlay */
 }
+/* --- Admin Dashboard Specific Styles --- */
 
+/* General container and heading for the dashboard page */
+.container.py-4 { /* Or a more specific class if needed */
+    /* If your overall admin theme is dark, ensure body/main container has a dark bg */
+    /* background-color: #212529; /* Example: Bootstrap dark */
+    /* color: #f8f9fa; /* Example: Bootstrap light text */
+}
+
+.container.py-4 h1,
+.container.py-4 h3 { /* Dashboard section titles */
+    /* color: #e9ecef; /* Slightly off-white for less harshness */
+    font-weight: 600; /* More prominent titles */
+    margin-bottom: 1.5rem !important; /* Consistent bottom margin */
+}
+.container.py-4 h1 .fas { /* Icon in main title */
+    color: var(--primary-color); /* Or a specific accent color */
+}
+
+.container.py-4 p.lead.text-muted {
+    /* color: #adb5bd !important; /* Softer muted text for dark theme */
+    margin-bottom: 2.5rem; /* More space after lead paragraph */
+}
+
+
+/* --- Statistics Cards Enhancements --- */
+.row.g-4.mb-5 .card { /* Target stat cards specifically */
+    background-color: #2c3034; /* Slightly lighter than pitch black for depth */
+    border: 1px solid #3e444a; /* Subtle border */
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    border-radius: var(--border-radius); /* Use your root variable */
+}
+
+.row.g-4.mb-5 .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.25);
+}
+
+.row.g-4.mb-5 .card .card-body {
+    padding: 1.5rem;
+}
+
+.row.g-4.mb-5 .card i.fas { /* Icons in stat cards */
+    font-size: 2.25rem !important; /* Slightly smaller if 2.5rem is too big */
+    margin-bottom: 0.75rem !important; /* Consistent spacing */
+    /* Colors are already set by text-primary, text-info etc. which is good */
+    /* Optional: add a subtle background to the icon itself */
+    /*
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.05);
+    */
+}
+
+.row.g-4.mb-5 .card h3.card-title {
+    font-size: 2rem; /* Prominent numbers */
+    font-weight: 700;
+    color: #f8f9fa; /* Bright white for numbers */
+    margin-bottom: 0.25rem;
+}
+
+.row.g-4.mb-5 .card p.card-text {
+    font-size: 0.9rem;
+    color: #adb5bd; /* Muted text for labels */
+}
+
+
+/* --- Pending Company Approvals Card --- */
+.card .card-header h5.mb-0 {
+    color: #e9ecef;
+    font-weight: 500;
+}
+.card .card-header h5.mb-0 .fas {
+    /* color: var(--warning-color); -- already set by text-warning */
+}
+.card .card-header { /* General card header style from your global css is fine */
+    background-color: rgba(var(--bs-light-rgb), 0.03); /* Very subtle dark header */
+    border-bottom: 1px solid #3e444a;
+}
+
+.card-body .d-flex.justify-content-between.align-items-center.mb-3.p-3.border.rounded {
+    background-color: rgba(var(--bs-light-rgb), 0.02); /* Subtle background for each item */
+    border-color: #373b3e !important; /* Darker border */
+    transition: background-color 0.2s ease;
+}
+.card-body .d-flex.justify-content-between.align-items-center.mb-3.p-3.border.rounded:hover {
+    background-color: rgba(var(--bs-light-rgb), 0.04);
+}
+
+.card-body hr {
+    border-top: 1px solid #373b3e; /* Darker hr */
+}
+
+
+/* --- Quick Actions Cards --- */
+.row.g-3.mb-5 .card { /* Target quick action cards */
+    background-color: #2c3034;
+    border: 1px solid #3e444a;
+    height: 100%; /* Ensure cards in a row are same height */
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--border-radius);
+}
+.row.g-3.mb-5 .card .card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Make body take available space */
+}
+.row.g-3.mb-5 .card i.fas {
+    font-size: 1.75rem !important; /* Slightly smaller icons for quick actions */
+    margin-bottom: 0.75rem !important;
+}
+.row.g-3.mb-5 .card h6.card-title {
+    color: #e9ecef;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.row.g-3.mb-5 .card p.card-text.small {
+    color: #adb5bd;
+    font-size: 0.85rem;
+    flex-grow: 1; /* Push button to bottom */
+    margin-bottom: 1rem;
+}
+.row.g-3.mb-5 .card .btn-sm { /* Button at the bottom */
+    margin-top: auto; /* Pushes button to bottom if card-body is flex column */
+    padding: 0.375rem 1rem; /* Slightly larger padding for sm buttons */
+    font-weight: 500;
+}
+
+
+/* --- Recent Activity Cards --- */
+.row .col-lg-6 .card { /* Target recent activity cards */
+    background-color: #2c3034;
+    border: 1px solid #3e444a;
+    border-radius: var(--border-radius);
+}
+.row .col-lg-6 .card .card-header h5.mb-0 {
+    color: #e9ecef;
+}
+.row .col-lg-6 .card .card-header .fas {
+    color: var(--secondary-color); /* Subtler icon color for these headers */
+}
+.row .col-lg-6 .card .card-body h6.mb-1 {
+    color: #dee2e6;
+    font-weight: 500;
+}
+.row .col-lg-6 .card .text-muted {
+    /* color: #868e96 !important; -- Bootstrap's default text-muted for dark bg is ok */
+}
+.row .col-lg-6 .card .btn-outline-primary,
+.row .col-lg-6 .card .btn-outline-info {
+    /* Make outline buttons stand out more on dark background */
+    /* Colors are fine, maybe slightly thicker border or more padding */
+    border-width: 1px; /* Bootstrap default, can be 2px */
+    padding: 0.3rem 0.75rem;
+}
+
+/* General improvements for buttons on dark background if not already covered */
+.btn-success {
+    /* color: #fff; -- Bootstrap default */
+    /* background-color: var(--success-color); -- Bootstrap default */
+    /* border-color: var(--success-color); -- Bootstrap default */
+}
+.btn-primary { }
+.btn-info { }
+.btn-warning {
+    color: #000 !important; /* Ensure text is dark on yellow for accessibility */
+}
+
+/* Star rating in recent candidates */
+.row .col-lg-6 .card .fa-star.text-muted {
+    color: #49505d !important; /* Darker muted star for more contrast */
+}
 /* Global styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
