@@ -227,6 +227,201 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
 }
+/* --- Browse Jobs Page Specific Styles --- */
+
+/* Main page heading and lead paragraph */
+.container.py-4 h1.mb-3 { /* For "Explore Job Opportunities" */
+    color: #e9ecef; /* Light text for dark theme */
+    font-weight: 600;
+}
+.container.py-4 h1.mb-3 .fas.fa-search {
+    color: var(--primary-color); /* Accent color for the icon */
+}
+.container.py-4 p.lead.text-muted {
+    color: #adb5bd !important; /* Softer muted text for dark theme */
+    margin-bottom: 2.5rem; /* More space after lead */
+}
+
+/* --- Job Filters Card --- */
+.card.filter-card { /* Add class="filter-card" to the filter card div */
+    background-color: #2c3034; /* Darker card background */
+    border: 1px solid #3e444a; /* Subtle border for definition */
+    border-radius: var(--border-radius);
+    margin-bottom: 2.5rem !important; /* More space below filter card */
+}
+
+.card.filter-card .card-header {
+    background-color: rgba(var(--bs-light-rgb), 0.03); /* Very subtle dark header */
+    border-bottom: 1px solid #3e444a;
+    padding: 0.75rem 1.25rem;
+}
+.card.filter-card .card-header h5 {
+    color: #e9ecef;
+    font-weight: 500;
+}
+.card.filter-card .card-header .fas.fa-filter {
+    color: var(--secondary-color); /* Or your preferred accent for filter icon */
+}
+
+.card.filter-card .card-body {
+    padding: 1.5rem; /* More padding inside the card body */
+}
+
+/* Filter form elements styling */
+.card.filter-card .form-label {
+    font-size: 0.875rem;
+    color: #ced4da; /* Lighter label text */
+    margin-bottom: 0.35rem;
+}
+
+.card.filter-card .form-control-sm,
+.card.filter-card .form-select-sm {
+    background-color: #343a40; /* Darker input background */
+    color: #f8f9fa; /* Light input text */
+    border: 1px solid #495057; /* Darker border */
+    font-size: 0.875rem; /* Ensure sm is applied if not default */
+}
+.card.filter-card .form-control-sm::placeholder {
+    color: #868e96; /* Lighter placeholder text */
+}
+.card.filter-card .form-control-sm:focus,
+.card.filter-card .form-select-sm:focus {
+    background-color: #3a4147;
+    color: #f8f9fa;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25); /* Bootstrap's default focus */
+}
+
+/* Spacing for filter buttons */
+/* The .row.g-3.align-items-end already provides good horizontal/vertical alignment */
+/* The issue is the button column's own margin/padding.
+   Bootstrap's .col-md-auto for buttons is fine for width.
+   The mt-3 mt-md-0 and mt-2 mt-md-0 on button columns handle responsive top margin.
+*/
+.card.filter-card form .row > [class*="col-"]:last-child, /* Last column in the filter row (likely a button) */
+.card.filter-card form .row > [class*="col-"]:nth-last-child(2) { /* Second to last for clear button */
+    /* This ensures buttons align correctly with the bottom of the inputs due to align-items-end */
+}
+
+/* --- Job Results Count --- */
+p.text-muted.mb-3 { /* "Found X job postings" */
+    color: #adb5bd !important;
+    font-size: 0.95rem;
+}
+
+/* --- Job Cards Enhancements (class="job-card") --- */
+.job-card {
+    background-color: #2c3034;
+    border: 1px solid #3e444a;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    box-shadow: var(--box-shadow); /* Use your existing subtle shadow */
+    height: 100%; /* Ensures cards in a row are same height */
+    display: flex;
+    flex-direction: column;
+}
+.job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.5rem 1.25rem rgba(0,0,0,0.2); /* Enhanced shadow on hover */
+    border-color: #495057;
+}
+
+.job-card .card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow body to grow and push footer to bottom */
+}
+
+.job-card .card-title {
+    color: #e9ecef;
+    font-weight: 600;
+}
+.job-card h6.text-primary { /* Company Name */
+    color: var(--primary-color) !important; /* Ensure it stands out */
+    font-weight: 500;
+}
+.job-card .text-muted { /* General muted text in cards */
+    color: #adb5bd !important;
+}
+.job-card .text-success.small { /* Salary */
+    color: var(--success-color) !important;
+    font-weight: 500;
+}
+
+/* Job Type Badge */
+.job-card .badge.bg-info {
+    /* background-color: var(--info-color) !important; -- Already bg-info */
+    color: #000 !important; /* Ensure dark text for good contrast on info blue */
+    font-weight: 500;
+    padding: 0.3em 0.6em;
+}
+
+/* "not found" text - replace with a proper badge or style better */
+/* Assuming "not found" is within a span or small tag. If it's text-danger, style that */
+.job-card .text-danger, /* Or whatever class 'not found' has */
+.job-card .badge.bg-danger { /* If you make it a badge */
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.3em 0.6em;
+    /* background-color: var(--danger-color);
+    color: white;
+    border-radius: var(--border-radius); */
+}
+
+
+/* Job Tags */
+.job-card .job-tags .badge.rounded-pill {
+    background-color: #3e444a !important; /* Darker background for tags */
+    color: #ced4da !important; /* Lighter text for tags */
+    border: 1px solid #495057 !important;
+    font-weight: 400;
+    padding: 0.3em 0.65em;
+    font-size: 0.75rem;
+}
+
+.job-card .description-preview {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.job-card .mt-auto.d-flex { /* Footer of the card */
+    padding-top: 1rem;
+    border-top: 1px solid #3e444a; /* Separator line */
+}
+.job-card .btn-outline-primary {
+    /* color: var(--primary-color); -- Bootstrap default
+    border-color: var(--primary-color); -- Bootstrap default */
+}
+.job-card .btn-outline-primary:hover {
+    /* background-color: var(--primary-color);
+    color: white; */
+}
+
+/* --- "How to Apply" Alert --- */
+.alert.alert-info {
+    background-color: rgba(var(--bs-info-rgb), 0.15); /* Slightly more prominent info for dark theme */
+    border: 1px solid rgba(var(--bs-info-rgb), 0.3);
+    color: #b8eaff; /* Lighter text for info alert */
+}
+.alert.alert-info .alert-heading {
+    color: #d1f0ff;
+}
+.alert.alert-info .fas.fa-info-circle {
+    color: var(--info-color);
+}
+
+/* --- "No Jobs Match" Section --- */
+.text-center.py-5 .fas.fa-search-minus {
+    font-size: 3.5rem !important; /* Slightly smaller */
+    color: #6c757d !important; /* Muted color */
+}
+.text-center.py-5 h4 {
+    color: #ced4da;
+}
+.text-center.py-5 p.text-muted {
+    color: #868e96 !important;
+}
 
 /* Navigation enhancements */
 .navbar-brand {
